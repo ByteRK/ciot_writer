@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 模板列表行：左侧圆点用于切换“当前使用”，中间点击编辑，右侧删除。 -->
+<!-- 产品列表行：左侧圆点用于切换“当前使用”，中间点击编辑，右侧删除。 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"

@@ -15,9 +15,9 @@ public class WriterService {
     public interface Progress { void log(String message); }
     public static class Result { public String pid, mac, did, license, content; }
 
-    public static void checkConnection(String host, ProductTemplate t) throws Exception {
-        validateConnection(host, t);
-        try (TelnetSession session = new TelnetSession(host, t.port, t.username, t.password)) { }
+    public static void checkConnection(String host, Product product) throws Exception {
+        validateConnection(host, product);
+        try (TelnetSession session = new TelnetSession(host, product.port, product.username, product.password)) { }
     }
 
     public static void checkServer(String serverUrl) throws Exception {
@@ -31,28 +31,28 @@ public class WriterService {
         } finally { connection.disconnect(); }
     }
 
-    public static Result write(String serverUrl, String host, ProductTemplate t, boolean reboot, Progress progress) throws Exception {
-        validate(host, t);
+    public static Result write(String serverUrl, String host, Product product, boolean reboot, Progress progress) throws Exception {
+        validate(host, product);
         String mac;
-        try (TelnetSession session = new TelnetSession(host, t.port, t.username, t.password)) {
-            progress.log("Telnet 登录成功，读取 " + t.networkInterface + " 网卡 MAC");
-            String output = session.run("cat /sys/class/net/" + t.networkInterface + "/address").output;
+        try (TelnetSession session = new TelnetSession(host, product.port, product.username, product.password)) {
+            progress.log("Telnet 登录成功，读取 " + product.networkInterface + " 网卡 MAC");
+            String output = session.run("cat /sys/class/net/" + product.networkInterface + "/address").output;
             Matcher matcher = Pattern.compile("(?i)(?:[0-9a-f]{2}:){5}[0-9a-f]{2}").matcher(output);
-            if (!matcher.find()) throw new Exception("无法读取有效 MAC 地址：" + t.networkInterface);
+            if (!matcher.find()) throw new Exception("无法读取有效 MAC 地址：" + product.networkInterface);
             mac = matcher.group().toUpperCase();
             progress.log("设备 MAC：" + mac + "，正在向授权服务器申请");
-            JSONObject data = requestAuthorization(serverUrl, t.pid, mac);
+            JSONObject data = requestAuthorization(serverUrl, product.pid, mac);
             Result result = new Result();
             result.pid = data.getString("pid"); result.mac = data.optString("mac", mac);
             result.did = data.getString("display_code");
             result.license = data.getJSONObject("payload").optString("license", "");
             if (result.license.isEmpty()) throw new Exception("服务器返回数据缺少 payload.license");
-            result.content = t.contentTemplate.replace("{{pid}}", result.pid)
+            result.content = product.contentTemplate.replace("{{pid}}", result.pid)
                     .replace("{{did}}", result.did).replace("{{license}}", result.license);
             try {
                 String encoded = Base64.getEncoder().encodeToString(result.content.getBytes(StandardCharsets.UTF_8));
-                checkedCommand(session, "printf '%s' '" + encoded + "' | base64 -d > " + shellQuote(t.targetPath), "授权文件写入");
-                progress.log("授权文件已写入 " + t.targetPath + "，正在同步");
+                checkedCommand(session, "printf '%s' '" + encoded + "' | base64 -d > " + shellQuote(product.targetPath), "授权文件写入");
+                progress.log("授权文件已写入 " + product.targetPath + "，正在同步");
                 checkedCommand(session, "sync", "同步");
             } catch (Exception writeFailure) {
                 throw new Exception("授权码已分配并绑定（DID="+result.did+"），但设备文件写入或同步失败："+writeFailure.getMessage()+"。授权绑定仍保留，请处理后重试", writeFailure);
@@ -65,20 +65,20 @@ public class WriterService {
         }
     }
 
-    public static void syncAndReboot(String host, ProductTemplate t) throws Exception {
-        validateConnection(host, t);
-        try (TelnetSession session = new TelnetSession(host, t.port, t.username, t.password)) {
+    public static void syncAndReboot(String host, Product product) throws Exception {
+        validateConnection(host, product);
+        try (TelnetSession session = new TelnetSession(host, product.port, product.username, product.password)) {
             session.run("sync");
             session.reboot();
         }
     }
 
     /** 读取设备上的目标文件内容，用于核对写入结果或备份授权文件。 */
-    public static String readFile(String host, ProductTemplate t) throws Exception {
-        validateConnection(host, t);
-        if (t.targetPath == null || !t.targetPath.startsWith("/") || hasControlChars(t.targetPath)) throw new Exception("设备文件路径必须是有效的绝对路径");
-        try (TelnetSession session = new TelnetSession(host, t.port, t.username, t.password)) {
-            TelnetSession.Result result = session.run("cat " + shellQuote(t.targetPath));
+    public static String readFile(String host, Product product) throws Exception {
+        validateConnection(host, product);
+        if (product.targetPath == null || !product.targetPath.startsWith("/") || hasControlChars(product.targetPath)) throw new Exception("设备文件路径必须是有效的绝对路径");
+        try (TelnetSession session = new TelnetSession(host, product.port, product.username, product.password)) {
+            TelnetSession.Result result = session.run("cat " + shellQuote(product.targetPath));
             if (result.exitCode != 0) throw new Exception("读取设备文件失败（退出码 " + result.exitCode + "）" + tail(result.output));
             return result.output.replace("\r", "");
         }
@@ -124,19 +124,19 @@ public class WriterService {
         return base;
     }
 
-    private static void validate(String host, ProductTemplate t) throws Exception {
-        validateConnection(host, t);
-        if (t.pid == null || t.pid.trim().isEmpty()) throw new Exception("PID 不能为空");
-        if (t.networkInterface == null || !t.networkInterface.matches("[A-Za-z0-9_.:-]{1,64}")) throw new Exception("网卡名格式不正确");
-        if (t.targetPath == null || !t.targetPath.startsWith("/") || hasControlChars(t.targetPath)) throw new Exception("设备文件路径必须是有效的绝对路径");
-        for(String slot:new String[]{"{{pid}}","{{did}}","{{license}}"}) if(t.contentTemplate==null || !t.contentTemplate.contains(slot)) throw new Exception("文件模板缺少槽位："+slot);
+    private static void validate(String host, Product product) throws Exception {
+        validateConnection(host, product);
+        if (product.pid == null || product.pid.trim().isEmpty()) throw new Exception("PID 不能为空");
+        if (product.networkInterface == null || !product.networkInterface.matches("[A-Za-z0-9_.:-]{1,64}")) throw new Exception("网卡名格式不正确");
+        if (product.targetPath == null || !product.targetPath.startsWith("/") || hasControlChars(product.targetPath)) throw new Exception("设备文件路径必须是有效的绝对路径");
+        for(String slot:new String[]{"{{pid}}","{{did}}","{{license}}"}) if(product.contentTemplate==null || !product.contentTemplate.contains(slot)) throw new Exception("内容模板缺少槽位："+slot);
     }
 
     /** 仅校验建立 Telnet 连接所需的字段，不阻断单纯的连通性测试。 */
-    private static void validateConnection(String host, ProductTemplate t) throws Exception {
+    private static void validateConnection(String host, Product product) throws Exception {
         if (host == null || !host.trim().matches("[A-Za-z0-9][A-Za-z0-9.:-]*")) throw new Exception("请输入有效的设备 IP 或主机名");
-        if (t.port < 1 || t.port > 65535) throw new Exception("Telnet 端口必须在 1-65535 之间");
-        if (t.username == null || t.password == null || hasControlChars(t.username) || hasControlChars(t.password)) throw new Exception("Telnet 用户名或密码包含非法字符");
+        if (product.port < 1 || product.port > 65535) throw new Exception("Telnet 端口必须在 1-65535 之间");
+        if (product.username == null || product.password == null || hasControlChars(product.username) || hasControlChars(product.password)) throw new Exception("Telnet 用户名或密码包含非法字符");
     }
 
     /** 检测换行、NUL、DEL 及 Telnet IAC 等会破坏协议解析或 shell 命令的控制字节。 */

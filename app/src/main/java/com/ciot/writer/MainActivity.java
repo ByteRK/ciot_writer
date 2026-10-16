@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 
 /**
  * 主界面：上方为终端式日志区（自动向上滚动），下方为固定高度的设备操作面板。
- * 服务器地址与产品模板管理已拆分到 {@link SettingsActivity}。
+ * 服务器地址与产品管理已拆分到 {@link SettingsActivity}。
  */
 public class MainActivity extends Activity {
     /** 终端最多保留的日志行数，超出后丢弃最早的记录，避免界面无限增长。 */
@@ -39,10 +39,10 @@ public class MainActivity extends Activity {
     private static final int EXPORT_FILE = 3103;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Deque<String> logLines = new ArrayDeque<>();
-    private TemplateStore store;
-    private List<ProductTemplate> templates = new ArrayList<>();
-    private Spinner templateSpinner;
-    private TextView templateInfo, titleStatus;
+    private ProductStore store;
+    private List<Product> products = new ArrayList<>();
+    private Spinner productSpinner;
+    private TextView productInfo, titleStatus;
     private EditText host;
     private CheckBox autoReboot;
     private ScrollView logScroll;
@@ -54,12 +54,12 @@ public class MainActivity extends Activity {
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
-        store = new TemplateStore(this);
+        store = new ProductStore(this);
         SystemInsets.enableEdgeToEdge(this);
         setContentView(R.layout.activity_main);
 
-        templateSpinner = findViewById(R.id.templateSpinner);
-        templateInfo = findViewById(R.id.templateInfo);
+        productSpinner = findViewById(R.id.productSpinner);
+        productInfo = findViewById(R.id.productInfo);
         titleStatus = findViewById(R.id.titleStatus);
         host = findViewById(R.id.host);
         autoReboot = findViewById(R.id.autoReboot);
@@ -87,20 +87,20 @@ public class MainActivity extends Activity {
         fetchButton.setOnClickListener(v -> fetchFile());
         copyLogButton.setOnClickListener(v -> copyLog());
         clearLogButton.setOnClickListener(v -> clearLog());
-        templateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        productSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (updatingSpinner) return;
                 store.setSelected(position);
-                updateTemplateInfo();
+                updateProductInfo();
             }
             @Override public void onNothingSelected(AdapterView<?> parent) { }
         });
     }
 
-    /** 从设置页返回时重新加载模板，保证下拉列表与最新配置一致。 */
+    /** 从设置页返回时重新加载产品，保证下拉列表与最新配置一致。 */
     @Override protected void onResume() {
         super.onResume();
-        templates = store.load();
+        products = store.load();
         refreshSpinner(store.getSelected());
     }
 
@@ -133,42 +133,41 @@ public class MainActivity extends Activity {
 
     private void setStatus(String status) { if (titleStatus != null) titleStatus.setText(status); }
 
-    private ProductTemplate currentTemplate() {
-        int index = templateSpinner == null ? 0 : templateSpinner.getSelectedItemPosition();
-        return templates.get(Math.max(0, Math.min(index, templates.size() - 1)));
+    private Product currentProduct() {
+        int index = productSpinner == null ? 0 : productSpinner.getSelectedItemPosition();
+        return products.get(Math.max(0, Math.min(index, products.size() - 1)));
     }
 
     private void refreshSpinner(int selected) {
-        if (templateSpinner == null || templates.isEmpty()) return;
+        if (productSpinner == null || products.isEmpty()) return;
         List<String> names = new ArrayList<>();
-        for (ProductTemplate t : templates) names.add(t.name + "  ·  PID " + (t.pid.isEmpty() ? "未设置" : t.pid));
+        for (Product product : products) names.add(product.name + "  ·  PID " + (product.pid.isEmpty() ? "未设置" : product.pid));
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, names);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         updatingSpinner = true;
-        templateSpinner.setAdapter(adapter);
-        int index = Math.max(0, Math.min(selected, templates.size() - 1));
-        templateSpinner.setSelection(index);
+        productSpinner.setAdapter(adapter);
+        int index = Math.max(0, Math.min(selected, products.size() - 1));
+        productSpinner.setSelection(index);
         updatingSpinner = false;
         store.setSelected(index);
-        updateTemplateInfo();
+        updateProductInfo();
     }
 
-    private void updateTemplateInfo() {
-        if (templateInfo == null || templates.isEmpty()) return;
-        ProductTemplate t = currentTemplate();
-        // templateInfo.setText(t.networkInterface + " · Telnet " + t.port + " · " + t.targetPath);
-        templateInfo.setText("Telnet " + t.port + " · " + t.networkInterface + " · " + t.targetPath);
+    private void updateProductInfo() {
+        if (productInfo == null || products.isEmpty()) return;
+        Product product = currentProduct();
+        productInfo.setText("Telnet " + product.port + " · " + product.networkInterface + " · " + product.targetPath);
     }
 
     private void runCheck() {
-        final ProductTemplate t = currentTemplate();
+        final Product product = currentProduct();
         final String device = host.getText().toString().trim();
         if (device.isEmpty()) { toast("请输入设备 IP"); return; }
         setStatus("连接测试中…");
-        append("正在连接 " + device + ":" + t.port);
+        append("正在连接 " + device + ":" + product.port);
         worker.execute(() -> {
             try {
-                WriterService.checkConnection(device, t);
+                WriterService.checkConnection(device, product);
                 runOnUiThread(() -> { append("Telnet 登录成功"); setStatus("就绪"); });
             } catch (Exception e) {
                 runOnUiThread(() -> { append("连接失败：" + e.getMessage()); setStatus("连接失败"); });
@@ -177,17 +176,17 @@ public class MainActivity extends Activity {
     }
 
     private void burn() {
-        final ProductTemplate t = currentTemplate();
+        final Product product = currentProduct();
         final String device = host.getText().toString().trim();
         final String api = store.getServerUrl();
         if (device.isEmpty()) { toast("请输入设备 IP"); return; }
         if (api.isEmpty()) { toast("请先在设置中填写授权服务器地址"); return; }
         final boolean reboot = autoReboot.isChecked();
         setStatus("烧录中…");
-        append("开始烧录：" + t.name + " · PID=" + t.pid);
+        append("开始烧录：" + product.name + " · PID=" + product.pid);
         worker.execute(() -> {
             try {
-                WriterService.Result r = WriterService.write(api, device, t, reboot, message -> runOnUiThread(() -> append(message)));
+                WriterService.Result r = WriterService.write(api, device, product, reboot, message -> runOnUiThread(() -> append(message)));
                 runOnUiThread(() -> {
                     append("完成：PID=" + r.pid + "，DID=" + r.did + "，MAC=" + r.mac);
                     setStatus("烧录成功");
@@ -200,7 +199,7 @@ public class MainActivity extends Activity {
     }
 
     private void syncRestart() {
-        final ProductTemplate t = currentTemplate();
+        final Product product = currentProduct();
         final String device = host.getText().toString().trim();
         if (device.isEmpty()) { toast("请输入设备 IP"); return; }
         new AlertDialog.Builder(this).setTitle("同步并重启").setMessage("将连接 " + device + "，执行 sync 后重启设备。")
@@ -209,7 +208,7 @@ public class MainActivity extends Activity {
                 append("正在同步并重启 " + device);
                 worker.execute(() -> {
                     try {
-                        WriterService.syncAndReboot(device, t);
+                        WriterService.syncAndReboot(device, product);
                         runOnUiThread(() -> { append("已发送同步和重启命令"); setStatus("就绪"); });
                     } catch (Exception e) {
                         runOnUiThread(() -> { append("操作失败：" + e.getMessage()); setStatus("操作失败"); });
@@ -218,29 +217,29 @@ public class MainActivity extends Activity {
             }).show();
     }
 
-    /** 连接设备读取模板中配置的授权文件，输出到日志并提供复制、另存选项。 */
+    /** 连接设备读取产品中配置的授权文件，输出到日志并提供复制、另存选项。 */
     private void fetchFile() {
-        final ProductTemplate t = currentTemplate();
+        final Product product = currentProduct();
         final String device = host.getText().toString().trim();
         if (device.isEmpty()) { toast("请输入设备 IP"); return; }
         setStatus("抓取文件中…");
-        append("正在读取设备文件 " + t.targetPath);
+        append("正在读取设备文件 " + product.targetPath);
         worker.execute(() -> {
             try {
-                String content = WriterService.readFile(device, t);
+                String content = WriterService.readFile(device, product);
                 runOnUiThread(() -> {
                     if (content.trim().isEmpty()) {
-                        append("设备文件为空：" + t.targetPath);
+                        append("设备文件为空：" + product.targetPath);
                         setStatus("文件为空");
                         toast("设备文件内容为空");
                         return;
                     }
-                    append("---- " + t.targetPath + " ----");
+                    append("---- " + product.targetPath + " ----");
                     append(content);
                     append("---- 共 " + content.length() + " 字符 ----");
                     setStatus("抓取成功");
-                    if (store.getShowFetchDialog()) showFetchedContent(t, content);
-                    else toast("已输出到日志：" + t.targetPath);
+                    if (store.getShowFetchDialog()) showFetchedContent(product, content);
+                    else toast("已输出到日志：" + product.targetPath);
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> { append("抓取失败：" + e.getMessage()); setStatus("抓取失败"); toast("抓取失败"); });
@@ -249,9 +248,9 @@ public class MainActivity extends Activity {
     }
 
     /** 以可滚动、可选择的弹窗展示抓取到的文件内容，避免长内容撑破对话框。 */
-    private void showFetchedContent(ProductTemplate t, String content) {
+    private void showFetchedContent(Product product, String content) {
         fetchedContent = content;
-        fetchedFileName = t.targetPath.substring(t.targetPath.lastIndexOf('/') + 1);
+        fetchedFileName = product.targetPath.substring(product.targetPath.lastIndexOf('/') + 1);
         if (fetchedFileName.isEmpty()) fetchedFileName = "license.txt";
         float density = getResources().getDisplayMetrics().density;
         TextView body = new TextView(this);

@@ -16,7 +16,7 @@ import android.widget.ListView;
  * 反馈回路，表现为画面一跳一跳。
  */
 public class MaxHeightListView extends ListView {
-    /** 列表高度上限（dp），约等于 6 行模板。 */
+    /** 列表高度上限（dp），约等于 6 行产品。 */
     private static final int MAX_HEIGHT_DP = 320;
 
     /** 本次手势是否由本列表独占（仅此状态需要向外层申请禁止拦截，并在抬手时归还）。 */

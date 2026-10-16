@@ -117,7 +117,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- 产品与烧录模板 -->
+            <!-- 产品信息 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -139,23 +139,23 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="@string/settings_template_hint"
+                    android:text="@string/settings_product_hint"
                     android:textColor="@color/colorMuted"
                     android:textSize="12sp" />
 
                 <EditText
-                    android:id="@+id/templateFilter"
+                    android:id="@+id/productFilter"
                     style="@style/CIOT.EditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:hint="@string/template_filter_hint"
+                    android:hint="@string/product_filter_hint"
                     android:imeOptions="actionSearch"
                     android:inputType="text"
                     android:singleLine="true" />
 
                 <TextView
-                    android:id="@+id/templateCount"
+                    android:id="@+id/productCount"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -164,7 +164,7 @@
 
                 <!-- 高度自适应且封顶的列表：条目少时贴合内容，多时列表内部滚动 -->
                 <com.ciot.writer.MaxHeightListView
-                    android:id="@+id/templateList"
+                    android:id="@+id/productList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
@@ -174,25 +174,25 @@
                     android:scrollbars="vertical" />
 
                 <TextView
-                    android:id="@+id/templateEmpty"
+                    android:id="@+id/productEmpty"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
-                    android:text="@string/template_empty"
+                    android:text="@string/product_empty"
                     android:textColor="@color/colorMuted"
                     android:textSize="13sp"
                     android:visibility="gone" />
 
                 <Button
-                    android:id="@+id/addTemplate"
+                    android:id="@+id/addProduct"
                     style="@style/CIOT.Button.Primary"
                     android:layout_width="match_parent"
                     android:layout_height="46dp"
                     android:layout_marginTop="8dp"
-                    android:text="@string/btn_add_template" />
+                    android:text="@string/btn_add_product" />
             </LinearLayout>
 
-            <!-- 模板备份与迁移（全量操作，避免与单个产品的增删改混淆） -->
+            <!-- 产品备份与迁移（全量操作，避免与单个产品的增删改混淆） -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -225,7 +225,7 @@
                     android:orientation="horizontal">
 
                     <Button
-                        android:id="@+id/importTemplates"
+                        android:id="@+id/importProducts"
                         style="@style/CIOT.Button"
                         android:layout_width="0dp"
                         android:layout_height="46dp"
@@ -233,7 +233,7 @@
                         android:text="@string/btn_import" />
 
                     <Button
-                        android:id="@+id/exportTemplates"
+                        android:id="@+id/exportProducts"
                         style="@style/CIOT.Button"
                         android:layout_width="0dp"
                         android:layout_height="46dp"

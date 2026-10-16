@@ -11,14 +11,12 @@
     <string name="btn_test_server">测试连接</string>
 
     <string name="card_product">产品信息</string>
-    <string name="btn_add">新增</string>
-    <string name="btn_edit">编辑</string>
     <string name="btn_delete">删除</string>
-    <string name="btn_add_template">＋ 新增产品</string>
-    <string name="template_filter_hint">筛选：输入产品名称或 PID</string>
-    <string name="template_count">共 %1$d 个产品</string>
-    <string name="template_count_filtered">筛选出 %1$d / %2$d 个产品</string>
-    <string name="template_empty">没有匹配的产品</string>
+    <string name="btn_add_product">＋ 新增产品</string>
+    <string name="product_filter_hint">筛选：输入产品名称或 PID</string>
+    <string name="product_count">共 %1$d 个产品</string>
+    <string name="product_count_filtered">筛选出 %1$d / %2$d 个产品</string>
+    <string name="product_empty">没有匹配的产品</string>
     <string name="card_backup">产品备份与迁移</string>
     <string name="backup_hint">导入会替换现有全部产品，导出会包含全部产品。</string>
     <string name="btn_import">导入数据</string>
@@ -46,7 +44,7 @@
     <string name="settings_fetch_dialog_hint">关闭后仅写入下方日志区。</string>
     <string name="settings_title">设置</string>
     <string name="settings_subtitle">服务器与产品配置</string>
-    <string name="settings_template_hint">点击列表项编辑，点击左侧圆点使用，点击右侧可删除。</string>
+    <string name="settings_product_hint">点击列表项编辑，点击左侧圆点使用，点击右侧可删除。</string>
 
     <string name="about_version">版本 %1$s（Build %2$d）</string>
     <string name="about_build_time">编译时间 %1$s</string>

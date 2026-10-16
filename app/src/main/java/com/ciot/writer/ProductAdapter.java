@@ -11,33 +11,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 模板列表适配器：只渲染筛选后的可见行，行内提供“设为当前使用 / 编辑 / 删除”三个动作。
- * 回调中的 index 均为 {@link #templates} 中的真实下标，便于增删改定位。
+ * 产品列表适配器：只渲染筛选后的可见行，行内提供“设为当前使用 / 编辑 / 删除”三个动作。
+ * 回调中的 index 均为 {@link #products} 中的真实下标，便于增删改定位。
  */
-public class TemplateAdapter extends BaseAdapter {
+public class ProductAdapter extends BaseAdapter {
 
     /** 行交互回调。 */
     public interface Listener {
         void onSelect(int index);
-        void onEdit(ProductTemplate template);
+        void onEdit(Product product);
         void onDelete(int index);
     }
 
     private final Context context;
     private final Listener listener;
-    private final List<ProductTemplate> templates;
+    private final List<Product> products;
     private final List<Integer> visible = new ArrayList<>();
     private int current = 0;
 
-    public TemplateAdapter(Context context, Listener listener, List<ProductTemplate> templates) {
+    public ProductAdapter(Context context, Listener listener, List<Product> products) {
         this.context = context;
         this.listener = listener;
-        this.templates = templates;
+        this.products = products;
     }
 
     /**
-     * 更新筛选结果与“当前使用”下标。注意 {@code templates} 需保持同一实例，
-     * 因此导入模板时应原地 clear/addAll 而不是重新赋值。
+     * 更新筛选结果与“当前使用”下标。注意 {@code products} 需保持同一实例，
+     * 因此导入产品时应原地 clear/addAll 而不是重新赋值。
      */
     public void submit(List<Integer> indices, int current) {
         visible.clear();
@@ -48,15 +48,15 @@ public class TemplateAdapter extends BaseAdapter {
 
     @Override public int getCount() { return visible.size(); }
 
-    @Override public Object getItem(int position) { return templates.get(indexAt(position)); }
+    @Override public Object getItem(int position) { return products.get(indexAt(position)); }
 
     @Override public long getItemId(int position) { return indexAt(position); }
 
     @Override public View getView(int position, View convertView, ViewGroup parent) {
         View row = convertView;
-        if (row == null) row = LayoutInflater.from(context).inflate(R.layout.item_template, parent, false);
+        if (row == null) row = LayoutInflater.from(context).inflate(R.layout.item_product, parent, false);
         final int index = indexAt(position);
-        ProductTemplate template = templates.get(index);
+        Product product = products.get(index);
         boolean active = index == current;
 
         TextView dot = row.findViewById(R.id.rowDot);
@@ -67,13 +67,13 @@ public class TemplateAdapter extends BaseAdapter {
 
         dot.setTextColor(context.getColor(active ? R.color.colorPrimary : R.color.colorDotIdle));
         name.setTextColor(context.getColor(active ? R.color.colorPrimary : R.color.colorDark));
-        name.setText(template.name);
-        sub.setText("PID " + (template.pid.isEmpty() ? "未设置" : template.pid)
-                + " · " + template.networkInterface + " · " + template.targetPath);
+        name.setText(product.name);
+        sub.setText("PID " + (product.pid.isEmpty() ? "未设置" : product.pid)
+                + " · " + product.networkInterface + " · " + product.targetPath);
         if (divider != null) divider.setVisibility(position == getCount() - 1 ? View.GONE : View.VISIBLE);
 
         dot.setOnClickListener(v -> listener.onSelect(index));
-        row.findViewById(R.id.rowMain).setOnClickListener(v -> listener.onEdit(template));
+        row.findViewById(R.id.rowMain).setOnClickListener(v -> listener.onEdit(product));
         remove.setOnClickListener(v -> listener.onDelete(index));
         return row;
     }
