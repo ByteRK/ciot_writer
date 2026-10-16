@@ -59,7 +59,7 @@ public class MainActivity extends Activity {
         logView = findViewById(R.id.logView);
 
         SystemInsets.avoidStatusBar(findViewById(R.id.topBar));
-        SystemInsets.avoidNavigationBar(findViewById(R.id.actionPanel));
+        SystemInsets.avoidBottomInset(findViewById(R.id.actionPanel));
 
         Button checkButton = findViewById(R.id.checkConnection);
         Button burnButton = findViewById(R.id.burn);

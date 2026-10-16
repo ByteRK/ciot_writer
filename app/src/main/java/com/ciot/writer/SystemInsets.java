@@ -46,8 +46,11 @@ final class SystemInsets {
         header.requestApplyInsets();
     }
 
-    /** 让底部面板按导航栏高度增加下内边距。 */
-    static void avoidNavigationBar(View footer) {
+    /**
+     * 让底部区域按“导航栏或软键盘”中更高的那个增加下内边距：
+     * 无键盘时仅翻开导航栏，弹出键盘时整体抬升到键盘上方，避免输入框被遮挡且无法滚动查看。
+     */
+    static void avoidBottomInset(View footer) {
         final int left = footer.getPaddingLeft(), top = footer.getPaddingTop();
         final int right = footer.getPaddingRight(), bottom = footer.getPaddingBottom();
         footer.setOnApplyWindowInsetsListener((view, insets) -> {
@@ -63,9 +66,11 @@ final class SystemInsets {
         return insets.getSystemWindowInsetTop();
     }
 
+    /** 返回导航栏与软键盘中更高的底部内边距（union 取最大），避免两者叠加导致多余留白。 */
     @SuppressWarnings("deprecation")
     private static int bottomInset(WindowInsets insets) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) return insets.getInsets(WindowInsets.Type.systemBars()).bottom;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+            return insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.ime()).bottom;
         return insets.getSystemWindowInsetBottom();
     }
 }

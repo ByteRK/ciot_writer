@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -42,7 +44,7 @@ public class SettingsActivity extends Activity {
         templateSpinner = findViewById(R.id.templateSpinner);
 
         SystemInsets.avoidStatusBar(findViewById(R.id.topBar));
-        SystemInsets.avoidNavigationBar(findViewById(R.id.settingsScroll));
+        SystemInsets.avoidBottomInset(findViewById(R.id.settingsScroll));
 
         Button closeButton = findViewById(R.id.closeSettings);
         Button saveServerButton = findViewById(R.id.saveServer);
@@ -119,7 +121,7 @@ public class SettingsActivity extends Activity {
         EditText content = form.findViewById(R.id.fieldContent);
         name.setText(t.name); pid.setText(t.pid); nic.setText(t.networkInterface); path.setText(t.targetPath);
         port.setText(String.valueOf(t.port)); username.setText(t.username); password.setText(t.password); content.setText(t.contentTemplate);
-        new AlertDialog.Builder(this).setTitle(editing ? "编辑产品模板" : "新增产品模板").setView(form)
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(editing ? "编辑产品模板" : "新增产品模板").setView(form)
             .setNegativeButton("取消", null).setPositiveButton("保存", (d, w) -> {
                 String p = pid.getText().toString().trim(), n = name.getText().toString().trim(), iface = nic.getText().toString().trim(), target = path.getText().toString().trim(), body = content.getText().toString();
                 int telnetPort; try { telnetPort = Integer.parseInt(port.getText().toString()); } catch (Exception ex) { toast("Telnet 端口无效"); return; }
@@ -129,7 +131,11 @@ public class SettingsActivity extends Activity {
                 t.username = username.getText().toString(); t.password = password.getText().toString(); t.contentTemplate = body;
                 if (!editing) templates.add(t);
                 store.save(templates); refreshSpinner(templates.indexOf(t)); toast("模板已保存");
-            }).show();
+            }).create();
+        // 弹窗为浮动窗口，部分系统仅支持平移；显式声明 adjustResize 以便在支持的机型上收缩并滚动到当前字段。
+        Window window = dialog.getWindow();
+        if (window != null) window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        dialog.show();
     }
 
     private void deleteTemplate() {
