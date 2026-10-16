@@ -2,6 +2,9 @@ plugins {
     id 'com.android.application'
 }
 
+// APK 产物文件名里的时间戳格式，需要秒级精度时改成 'yyyyMMdd-HHmmss' 即可。
+def apkTimestampFormat = 'yyyyMMdd-HHmmss'
+
 android {
     namespace 'com.ciot.writer'
     compileSdk 36
@@ -12,5 +15,16 @@ android {
         targetSdk 35
         versionCode 1
         versionName '1.0.0'
+    }
+
+    // 统一 APK 产物命名：CiotWriter_<debug|release>_V<版本名>_<时间戳>.apk
+    // 时间戳在配置阶段只取一次，保证同一次构建产生的所有 APK 后缀一致。
+    def apkTimestamp = new Date().format(apkTimestampFormat)
+    applicationVariants.all { variant ->
+        def buildType = variant.buildType.name
+        def appVersion = variant.versionName
+        variant.outputs.all { output ->
+            output.outputFileName = "CiotWriter_${buildType}_V${appVersion}_${apkTimestamp}.apk"
+        }
     }
 }

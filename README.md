@@ -44,7 +44,12 @@ $env:ANDROID_HOME = "E:\Android\Sdk"
 .\gradlew.bat assembleDebug
 ```
 
-调试 APK 输出到 `app/build/outputs/apk/debug/app-debug.apk`。
+APK 产物统一命名为 `CiotWriter_<debug|release>_V<版本名>_<时间戳>.apk`，输出到
+`app/build/outputs/apk/<debug|release>/`，例如
+`app/build/outputs/apk/debug/CiotWriter_debug_V1.0.0_20261016-160735.apk`。
+时间戳取构建时刻（`yyyyMMdd-HHmmss`），可在 `app/build.gradle` 的 `apkTimestampFormat` 中调整。
+
+> release 变体当前未配置签名，产物为未签名 APK，需自行签名后才能安装。
 
 ## 数据与网络
 
