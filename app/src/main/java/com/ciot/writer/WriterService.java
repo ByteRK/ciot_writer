@@ -15,9 +15,6 @@ public class WriterService {
     public interface Progress { void log(String message); }
     public static class Result { public String pid, mac, did, license, content; }
 
-    private static final String OK_MARK = "__CIOT_OK__";
-    private static final String FAIL_MARK = "__CIOT_FAIL__";
-
     public static void checkConnection(String host, ProductTemplate t) throws Exception {
         validateConnection(host, t);
         try (TelnetSession session = new TelnetSession(host, t.port, t.username, t.password)) { }
@@ -62,7 +59,7 @@ public class WriterService {
             }
             if (reboot) {
                 progress.log("同步完成，正在重启设备");
-                session.commandWithoutWaiting("reboot");
+                session.reboot();
             }
             return result;
         }
@@ -72,7 +69,7 @@ public class WriterService {
         validateConnection(host, t);
         try (TelnetSession session = new TelnetSession(host, t.port, t.username, t.password)) {
             session.command("sync");
-            session.commandWithoutWaiting("reboot");
+            session.reboot();
         }
     }
 
@@ -98,11 +95,15 @@ public class WriterService {
         }
     }
 
-    /** 执行命令并以退出码校验结果，避免「命令失败但静默成功」。 */
+    /** 执行命令并以退出码校验结果，避免「命令失败但静默成功」。
+     *  使用 `; echo "EXIT:$?"` 而非固定标记：命令回显中 `$?` 保持字面量，
+     *  只有真实输出才会展开为 `EXIT:<数字>`，从而避免回显文本干扰退出码判断。 */
     private static String checkedCommand(TelnetSession session, String command, String description) throws Exception {
-        String output = session.command(command + " && echo " + OK_MARK + " || echo " + FAIL_MARK);
-        if (output.contains(FAIL_MARK) || !output.contains(OK_MARK))
-            throw new Exception(description + "失败" + tail(output));
+        String output = session.command(command + "; echo \"EXIT:$?\"");
+        Matcher matcher = Pattern.compile("EXIT:(\\d+)").matcher(output);
+        int code = -1;
+        while (matcher.find()) code = Integer.parseInt(matcher.group(1));
+        if (code != 0) throw new Exception(description + "失败（退出码 " + code + "）" + tail(output));
         return output;
     }
 

@@ -51,7 +51,17 @@ public class TelnetSession implements AutoCloseable {
         return readUntil(PHASE_SHELL);
     }
 
-    public synchronized void commandWithoutWaiting(String command) throws Exception { send(command); }
+    /** 发送重启命令后等待设备断开连接（或短暂超时），确保命令已被设备处理而非随 socket 关闭而丢失。 */
+    public synchronized void reboot() throws Exception {
+        send("reboot");
+        long end = System.currentTimeMillis() + 5000;
+        while (System.currentTimeMillis() < end) {
+            if (Thread.currentThread().isInterrupted()) return;
+            try {
+                if (input.read() < 0) return; // 设备已断开，重启已执行
+            } catch (java.net.SocketTimeoutException ignored) { }
+        }
+    }
 
     private void send(String value) throws Exception { output.write((value + "\r\n").getBytes(StandardCharsets.UTF_8)); output.flush(); }
 
