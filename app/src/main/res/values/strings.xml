@@ -30,7 +30,13 @@
     <string name="btn_done">完成</string>
     <string name="btn_check_short">测试</string>
     <string name="btn_sync_short">同步重启</string>
+    <string name="btn_fetch">抓取文件</string>
+    <string name="btn_copy_content">复制内容</string>
+    <string name="btn_save_file">保存到本地</string>
     <string name="log_ready">就绪，等待操作…</string>
+    <string name="card_preference">操作偏好</string>
+    <string name="settings_fetch_dialog">抓取文件后弹出内容预览</string>
+    <string name="settings_fetch_dialog_hint">关闭后仅写入下方日志区，可直接在日志中选择文本或使用标题栏「复制」。</string>
     <string name="settings_title">设置</string>
     <string name="settings_subtitle">服务器与产品模板配置</string>
     <string name="settings_template_hint">模板的网卡名、写入路径与 Telnet 参数在此维护；主界面只需选择模板并烧录。</string>

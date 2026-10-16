@@ -73,6 +73,17 @@ public class WriterService {
         }
     }
 
+    /** 读取设备上的目标文件内容，用于核对写入结果或备份授权文件。 */
+    public static String readFile(String host, ProductTemplate t) throws Exception {
+        validateConnection(host, t);
+        if (t.targetPath == null || !t.targetPath.startsWith("/") || hasControlChars(t.targetPath)) throw new Exception("设备文件路径必须是有效的绝对路径");
+        try (TelnetSession session = new TelnetSession(host, t.port, t.username, t.password)) {
+            TelnetSession.Result result = session.run("cat " + shellQuote(t.targetPath));
+            if (result.exitCode != 0) throw new Exception("读取设备文件失败（退出码 " + result.exitCode + "）" + tail(result.output));
+            return result.output.replace("\r", "");
+        }
+    }
+
     private static JSONObject requestAuthorization(String serverUrl, String pid, String mac) throws Exception {
         String base = normalizeBase(serverUrl);
         HttpURLConnection connection = (HttpURLConnection) new URL(base + "/api/device/authorize").openConnection();

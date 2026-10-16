@@ -116,6 +116,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:paddingStart="8dp"
             android:textColor="@color/colorMuted"
             android:textSize="12sp" />
 
@@ -154,26 +155,32 @@
             android:textColor="@color/colorDark"
             android:textSize="14sp" />
 
+        <Button
+            android:id="@+id/burn"
+            style="@style/CIOT.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="6dp"
+            android:text="@string/btn_burn" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
-
             <Button
-                android:id="@+id/burn"
-                style="@style/CIOT.Button.Primary"
+                android:id="@+id/fetchFile"
+                style="@style/CIOT.Button"
                 android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="2"
-                android:text="@string/btn_burn" />
-
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="@string/btn_fetch" />
             <Button
                 android:id="@+id/syncRestart"
                 style="@style/CIOT.Button.Sync"
                 android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_marginStart="8dp"
+                android:layout_height="48dp"
                 android:layout_weight="1"
                 android:text="@string/btn_sync_short" />
         </LinearLayout>

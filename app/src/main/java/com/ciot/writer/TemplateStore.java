@@ -17,6 +17,9 @@ public class TemplateStore {
     public void setHost(String value) { preferences.edit().putString("host", value.trim()).apply(); }
     public boolean getAutoReboot() { return preferences.getBoolean("autoReboot", false); }
     public void setAutoReboot(boolean value) { preferences.edit().putBoolean("autoReboot", value).apply(); }
+    /** 抓取文件后是否弹出内容预览窗口，默认开启。 */
+    public boolean getShowFetchDialog() { return preferences.getBoolean("showFetchDialog", true); }
+    public void setShowFetchDialog(boolean value) { preferences.edit().putBoolean("showFetchDialog", value).apply(); }
     public int getSelected() { return preferences.getInt("selectedTemplate", 0); }
     public void setSelected(int value) { preferences.edit().putInt("selectedTemplate", value).apply(); }
     public List<ProductTemplate> load() {

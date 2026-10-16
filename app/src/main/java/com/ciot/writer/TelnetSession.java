@@ -69,7 +69,23 @@ public class TelnetSession implements AutoCloseable {
         Matcher matcher = done.matcher(raw);
         int exitCode = -1, end = raw.length();
         while (matcher.find()) { exitCode = Integer.parseInt(matcher.group(1)); end = matcher.start(); }
-        return new Result(raw.substring(0, end), exitCode);
+        return new Result(stripCommandEcho(raw.substring(0, end)), exitCode);
+    }
+
+    /**
+     * 去掉设备回显的命令原文：读取文件等场景会把命令本身回显到终端，
+     * 若不去除，抓取结果第一行会混入 {@code cat '...'; echo "..."} 这类内容。
+     * 回显前可能残留提示符后的空白（读取提示符时按最小匹配返回，会漏掉尾部空格），
+     * 因此允许命令前只有空白字符时才裁剪。
+     */
+    private String stripCommandEcho(String output) {
+        String command = pendingCommand;
+        String text = output.replaceFirst("^[\\r\\n]+", "");
+        if (command != null && !command.isEmpty()) {
+            int index = text.indexOf(command);
+            if (index >= 0 && text.substring(0, index).trim().isEmpty()) text = text.substring(index + command.length());
+        }
+        return text.replaceFirst("^[\\r\\n]+", "");
     }
 
     /** 发送重启命令后等待设备断开连接（或短暂超时），确保命令已被设备处理而非随 socket 关闭而丢失。 */

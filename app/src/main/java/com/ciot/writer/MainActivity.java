@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -12,11 +13,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -31,6 +35,8 @@ import java.util.concurrent.Executors;
 public class MainActivity extends Activity {
     /** 终端最多保留的日志行数，超出后丢弃最早的记录，避免界面无限增长。 */
     private static final int MAX_LOG_LINES = 1000;
+    /** 将抓取到的设备文件另存到本地的请求码。 */
+    private static final int EXPORT_FILE = 3103;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Deque<String> logLines = new ArrayDeque<>();
     private TemplateStore store;
@@ -43,6 +49,8 @@ public class MainActivity extends Activity {
     private TextView logView;
     private boolean updatingSpinner = false;
     private boolean logStarted = false;
+    /** 最近一次抓取到的设备文件内容与默认文件名，供另存到本地时使用。 */
+    private String fetchedContent, fetchedFileName;
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -64,6 +72,7 @@ public class MainActivity extends Activity {
         Button checkButton = findViewById(R.id.checkConnection);
         Button burnButton = findViewById(R.id.burn);
         Button syncButton = findViewById(R.id.syncRestart);
+        Button fetchButton = findViewById(R.id.fetchFile);
         Button copyLogButton = findViewById(R.id.copyLog);
         Button clearLogButton = findViewById(R.id.clearLog);
         Button settingsButton = findViewById(R.id.openSettings);
@@ -75,6 +84,7 @@ public class MainActivity extends Activity {
         checkButton.setOnClickListener(v -> runCheck());
         burnButton.setOnClickListener(v -> burn());
         syncButton.setOnClickListener(v -> syncRestart());
+        fetchButton.setOnClickListener(v -> fetchFile());
         copyLogButton.setOnClickListener(v -> copyLog());
         clearLogButton.setOnClickListener(v -> clearLog());
         templateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -146,7 +156,8 @@ public class MainActivity extends Activity {
     private void updateTemplateInfo() {
         if (templateInfo == null || templates.isEmpty()) return;
         ProductTemplate t = currentTemplate();
-        templateInfo.setText("网卡 " + t.networkInterface + " · 写入 " + t.targetPath + " · Telnet " + t.port);
+        // templateInfo.setText(t.networkInterface + " · Telnet " + t.port + " · " + t.targetPath);
+        templateInfo.setText("Telnet " + t.port + " · " + t.networkInterface + " · " + t.targetPath);
     }
 
     private void runCheck() {
@@ -205,6 +216,85 @@ public class MainActivity extends Activity {
                     }
                 });
             }).show();
+    }
+
+    /** 连接设备读取模板中配置的授权文件，输出到日志并提供复制、另存选项。 */
+    private void fetchFile() {
+        final ProductTemplate t = currentTemplate();
+        final String device = host.getText().toString().trim();
+        if (device.isEmpty()) { toast("请输入设备 IP"); return; }
+        setStatus("抓取文件中…");
+        append("正在读取设备文件 " + t.targetPath);
+        worker.execute(() -> {
+            try {
+                String content = WriterService.readFile(device, t);
+                runOnUiThread(() -> {
+                    if (content.trim().isEmpty()) {
+                        append("设备文件为空：" + t.targetPath);
+                        setStatus("文件为空");
+                        toast("设备文件内容为空");
+                        return;
+                    }
+                    append("---- " + t.targetPath + " ----");
+                    append(content);
+                    append("---- 共 " + content.length() + " 字符 ----");
+                    setStatus("抓取成功");
+                    if (store.getShowFetchDialog()) showFetchedContent(t, content);
+                    else toast("已输出到日志：" + t.targetPath);
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> { append("抓取失败：" + e.getMessage()); setStatus("抓取失败"); toast("抓取失败"); });
+            }
+        });
+    }
+
+    /** 以可滚动、可选择的弹窗展示抓取到的文件内容，避免长内容撑破对话框。 */
+    private void showFetchedContent(ProductTemplate t, String content) {
+        fetchedContent = content;
+        fetchedFileName = t.targetPath.substring(t.targetPath.lastIndexOf('/') + 1);
+        if (fetchedFileName.isEmpty()) fetchedFileName = "license.txt";
+        float density = getResources().getDisplayMetrics().density;
+        TextView body = new TextView(this);
+        body.setText(content);
+        body.setTextIsSelectable(true);
+        body.setTypeface(Typeface.MONOSPACE);
+        body.setTextSize(12);
+        body.setTextColor(getColor(R.color.colorDark));
+        int padding = (int) (16 * density);
+        body.setPadding(padding, padding, padding, padding);
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(body, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        scroll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) (260 * density)));
+        new AlertDialog.Builder(this).setTitle("已抓取 " + fetchedFileName)
+            .setView(scroll)
+            .setNegativeButton("关闭", null)
+            .setNeutralButton(R.string.btn_save_file, (d, w) -> saveFetchedFile())
+            .setPositiveButton(R.string.btn_copy_content, (d, w) -> {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText("CIOT Writer 授权文件", content));
+                toast("文件内容已复制");
+            }).show();
+    }
+
+    private void saveFetchedFile() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.setType("text/plain");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.putExtra(Intent.EXTRA_TITLE, fetchedFileName);
+        startActivityForResult(intent, EXPORT_FILE);
+    }
+
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != EXPORT_FILE || resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        if (fetchedContent == null) return;
+        try (OutputStream out = getContentResolver().openOutputStream(data.getData())) {
+            out.write(fetchedContent.getBytes(StandardCharsets.UTF_8));
+            append("授权文件已保存：" + fetchedFileName);
+            toast("授权文件已保存");
+        } catch (Exception e) {
+            toast("保存失败：" + e.getMessage());
+        }
     }
 
     /** 追加日志（自动滚动到底部），并按 {@link #MAX_LOG_LINES} 截断旧记录。 */

@@ -10,6 +10,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -42,6 +43,7 @@ public class SettingsActivity extends Activity {
 
         serverUrl = findViewById(R.id.serverUrl);
         templateSpinner = findViewById(R.id.templateSpinner);
+        CheckBox fetchDialog = findViewById(R.id.fetchDialog);
 
         SystemInsets.avoidStatusBar(findViewById(R.id.topBar));
         SystemInsets.avoidBottomInset(findViewById(R.id.settingsScroll));
@@ -56,6 +58,9 @@ public class SettingsActivity extends Activity {
         Button exportButton = findViewById(R.id.exportTemplates);
 
         serverUrl.setText(store.getServerUrl());
+
+        fetchDialog.setChecked(store.getShowFetchDialog());
+        fetchDialog.setOnCheckedChangeListener((button, checked) -> store.setShowFetchDialog(checked));
 
         closeButton.setOnClickListener(v -> finish());
         saveServerButton.setOnClickListener(v -> { store.setServerUrl(serverUrl.getText().toString()); toast("服务器地址已保存"); });
