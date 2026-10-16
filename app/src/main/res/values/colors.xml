@@ -8,4 +8,6 @@
     <color name="colorTerminal">#0F2229</color>
     <color name="colorTerminalText">#C7DCE4</color>
     <color name="colorOnDarkMuted">#9CB2BD</color>
+    <color name="colorDotIdle">#CBD6DB</color>
+    <color name="colorDivider">#E6ECEF</color>
 </resources>

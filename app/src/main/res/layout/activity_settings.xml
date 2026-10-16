@@ -143,49 +143,85 @@
                     android:textColor="@color/colorMuted"
                     android:textSize="12sp" />
 
-                <Spinner
-                    android:id="@+id/templateSpinner"
+                <EditText
+                    android:id="@+id/templateFilter"
+                    style="@style/CIOT.EditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" />
+                    android:layout_marginTop="10dp"
+                    android:hint="@string/template_filter_hint"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:singleLine="true" />
+
+                <TextView
+                    android:id="@+id/templateCount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@color/colorMuted"
+                    android:textSize="12sp" />
+
+                <!-- 高度自适应且封顶的列表：条目少时贴合内容，多时列表内部滚动 -->
+                <com.ciot.writer.MaxHeightListView
+                    android:id="@+id/templateList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:divider="@null"
+                    android:dividerHeight="0dp"
+                    android:listSelector="@android:color/transparent"
+                    android:scrollbars="vertical" />
+
+                <TextView
+                    android:id="@+id/templateEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:text="@string/template_empty"
+                    android:textColor="@color/colorMuted"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/addTemplate"
+                    style="@style/CIOT.Button.Primary"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/btn_add_template" />
+            </LinearLayout>
+
+            <!-- 模板备份与迁移（全量操作，避免与单个产品的增删改混淆） -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@android:color/white"
+                android:elevation="2dp"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/card_backup"
+                    android:textColor="@color/colorDark"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/backup_hint"
+                    android:textColor="@color/colorMuted"
+                    android:textSize="12sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/addTemplate"
-                        style="@style/CIOT.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="46dp"
-                        android:layout_weight="1"
-                        android:text="@string/btn_add" />
-
-                    <Button
-                        android:id="@+id/editTemplate"
-                        style="@style/CIOT.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="46dp"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:text="@string/btn_edit" />
-
-                    <Button
-                        android:id="@+id/deleteTemplate"
-                        style="@style/CIOT.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="46dp"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:text="@string/btn_delete" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="8dp"
                     android:orientation="horizontal">
 
                     <Button

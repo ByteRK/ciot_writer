@@ -4,15 +4,15 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.Spinner;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,9 +31,11 @@ public class SettingsActivity extends Activity {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private TemplateStore store;
     private List<ProductTemplate> templates;
-    private Spinner templateSpinner;
     private EditText serverUrl;
-    private boolean updatingSpinner = false;
+    private EditText templateFilter;
+    private ListView templateList;
+    private TextView templateCount;
+    private TemplateAdapter templateAdapter;
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -43,7 +45,10 @@ public class SettingsActivity extends Activity {
         setContentView(R.layout.activity_settings);
 
         serverUrl = findViewById(R.id.serverUrl);
-        templateSpinner = findViewById(R.id.templateSpinner);
+        templateFilter = findViewById(R.id.templateFilter);
+        templateList = findViewById(R.id.templateList);
+        templateCount = findViewById(R.id.templateCount);
+        TextView templateEmpty = findViewById(R.id.templateEmpty);
         CheckBox fetchDialog = findViewById(R.id.fetchDialog);
 
         SystemInsets.avoidStatusBar(findViewById(R.id.topBar));
@@ -53,8 +58,6 @@ public class SettingsActivity extends Activity {
         Button saveServerButton = findViewById(R.id.saveServer);
         Button testServerButton = findViewById(R.id.testServer);
         Button addButton = findViewById(R.id.addTemplate);
-        Button editButton = findViewById(R.id.editTemplate);
-        Button deleteButton = findViewById(R.id.deleteTemplate);
         Button importButton = findViewById(R.id.importTemplates);
         Button exportButton = findViewById(R.id.exportTemplates);
 
@@ -72,38 +75,69 @@ public class SettingsActivity extends Activity {
         saveServerButton.setOnClickListener(v -> { store.setServerUrl(serverUrl.getText().toString()); toast("服务器地址已保存"); });
         testServerButton.setOnClickListener(v -> checkServer(testServerButton));
         addButton.setOnClickListener(v -> editTemplate(null));
-        editButton.setOnClickListener(v -> editTemplate(currentTemplate()));
-        deleteButton.setOnClickListener(v -> deleteTemplate());
         importButton.setOnClickListener(v -> pickImportFile());
         exportButton.setOnClickListener(v -> pickExportFile());
-        templateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) { if (!updatingSpinner) store.setSelected(position); }
-            @Override public void onNothingSelected(AdapterView<?> parent) { }
+        templateFilter.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { renderList(); }
+            @Override public void afterTextChanged(Editable s) { }
         });
-        refreshSpinner(store.getSelected());
+        templateAdapter = new TemplateAdapter(this, new TemplateAdapter.Listener() {
+            @Override public void onSelect(int index) { store.setSelected(index); renderList(); }
+            @Override public void onEdit(ProductTemplate template) { editTemplate(template); }
+            @Override public void onDelete(int index) { confirmDelete(index); }
+        }, templates);
+        templateList.setAdapter(templateAdapter);
+        templateList.setEmptyView(templateEmpty);
+        renderList();
     }
 
     @Override protected void onDestroy() { super.onDestroy(); worker.shutdownNow(); }
 
     private void toast(String message) { Toast.makeText(this, message, Toast.LENGTH_SHORT).show(); }
 
-    private ProductTemplate currentTemplate() {
-        int index = templateSpinner == null ? 0 : templateSpinner.getSelectedItemPosition();
-        return templates.get(Math.max(0, Math.min(index, templates.size() - 1)));
+    /** 当前使用中的模板下标（越界自动收敛）。 */
+    private int currentIndex() {
+        if (templates.isEmpty()) return 0;
+        return Math.max(0, Math.min(store.getSelected(), templates.size() - 1));
     }
 
-    private void refreshSpinner(int selected) {
-        if (templateSpinner == null || templates.isEmpty()) return;
-        List<String> names = new ArrayList<>();
-        for (ProductTemplate t : templates) names.add(t.name + "  ·  PID " + (t.pid.isEmpty() ? "未设置" : t.pid));
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, names);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        updatingSpinner = true;
-        templateSpinner.setAdapter(adapter);
-        int index = Math.max(0, Math.min(selected, templates.size() - 1));
-        templateSpinner.setSelection(index);
-        updatingSpinner = false;
-        store.setSelected(index);
+    /** 按筛选关键字刷新列表（适配器只渲染可见行），并同步“当前使用”标记与数量提示。 */
+    private void renderList() {
+        if (templateAdapter == null) return;
+        int current = currentIndex();
+        if (current != store.getSelected()) store.setSelected(current);
+        String query = templateFilter == null ? "" : templateFilter.getText().toString().trim().toLowerCase();
+        List<Integer> shown = new ArrayList<>();
+        for (int i = 0; i < templates.size(); i++) {
+            ProductTemplate t = templates.get(i);
+            if (query.isEmpty() || t.name.toLowerCase().contains(query) || t.pid.toLowerCase().contains(query)) shown.add(i);
+        }
+        if (templateCount != null) {
+            templateCount.setText(query.isEmpty()
+                    ? getString(R.string.template_count, templates.size())
+                    : getString(R.string.template_count_filtered, shown.size(), templates.size()));
+        }
+        templateAdapter.submit(shown, current);
+    }
+
+    /** 删除指定产品（带确认），列表清空时自动补一个默认模板。 */
+    private void confirmDelete(final int index) {
+        if (index < 0 || index >= templates.size()) return;
+        final ProductTemplate t = templates.get(index);
+        new AlertDialog.Builder(this).setTitle("删除产品")
+            .setMessage("确定删除“" + t.name + "”？此操作不可撤销。")
+            .setNegativeButton("取消", null)
+            .setPositiveButton("删除", (d, w) -> {
+                templates.remove(index);
+                if (templates.isEmpty()) templates.add(new ProductTemplate());
+                store.save(templates);
+                int selected = store.getSelected();
+                if (index < selected) selected--;
+                store.setSelected(Math.max(0, Math.min(selected, templates.size() - 1)));
+                renderList();
+                toast("模板已删除");
+            }).show();
     }
 
     private void checkServer(Button button) {
@@ -140,24 +174,15 @@ public class SettingsActivity extends Activity {
                 for (String slot : new String[]{"{{pid}}", "{{did}}", "{{license}}"}) if (!body.contains(slot)) { toast("文件模板缺少 " + slot); return; }
                 t.name = n; t.pid = p; t.networkInterface = iface; t.targetPath = target; t.port = telnetPort;
                 t.username = username.getText().toString(); t.password = password.getText().toString(); t.contentTemplate = body;
-                if (!editing) templates.add(t);
-                store.save(templates); refreshSpinner(templates.indexOf(t)); toast("模板已保存");
+                if (!editing) { templates.add(t); store.setSelected(templates.size() - 1); }
+                store.save(templates);
+                renderList();
+                toast("模板已保存");
             }).create();
         // 弹窗为浮动窗口，部分系统仅支持平移；显式声明 adjustResize 以便在支持的机型上收缩并滚动到当前字段。
         Window window = dialog.getWindow();
         if (window != null) window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         dialog.show();
-    }
-
-    private void deleteTemplate() {
-        if (templates.size() < 2) { toast("至少保留一个模板"); return; }
-        int index = templateSpinner.getSelectedItemPosition();
-        new AlertDialog.Builder(this).setTitle("删除模板").setMessage("删除“" + currentTemplate().name + "”？")
-            .setNegativeButton("取消", null).setPositiveButton("删除", (d, w) -> {
-                templates.remove(index);
-                store.save(templates);
-                refreshSpinner(Math.max(0, index - 1));
-            }).show();
     }
 
     private void pickImportFile() {
@@ -188,16 +213,18 @@ public class SettingsActivity extends Activity {
                     new AlertDialog.Builder(this).setTitle("替换产品模板")
                         .setMessage("导入文件包含 " + imported.size() + " 个模板，将替换当前全部模板。是否继续？")
                         .setNegativeButton("取消", null).setPositiveButton("导入", (dialog, which) -> {
-                            templates = imported;
+                            templates.clear();
+                            templates.addAll(imported);
                             store.save(templates);
-                            refreshSpinner(0);
+                            store.setSelected(0);
+                            renderList();
                             toast("模板导入完成：" + templates.size() + " 个");
                         }).show();
                 }
             } else if (requestCode == EXPORT_JSON) {
                 try (OutputStream out = getContentResolver().openOutputStream(data.getData())) {
                     out.write(TemplateStore.exportJson(templates).getBytes(StandardCharsets.UTF_8));
-                    toast("模板已导出");
+                    toast("已导出全部 " + templates.size() + " 个模板");
                 }
             }
         } catch (Exception e) {

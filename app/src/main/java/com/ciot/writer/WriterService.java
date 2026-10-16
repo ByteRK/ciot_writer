@@ -126,8 +126,8 @@ public class WriterService {
 
     private static void validate(String host, ProductTemplate t) throws Exception {
         validateConnection(host, t);
-        if (t.pid == null || t.pid.trim().isEmpty()) throw new Exception("模板 PID 不能为空");
-        if (t.networkInterface == null || !t.networkInterface.matches("[A-Za-z0-9_.:-]{1,64}")) throw new Exception("模板网卡名格式不正确");
+        if (t.pid == null || t.pid.trim().isEmpty()) throw new Exception("PID 不能为空");
+        if (t.networkInterface == null || !t.networkInterface.matches("[A-Za-z0-9_.:-]{1,64}")) throw new Exception("网卡名格式不正确");
         if (t.targetPath == null || !t.targetPath.startsWith("/") || hasControlChars(t.targetPath)) throw new Exception("设备文件路径必须是有效的绝对路径");
         for(String slot:new String[]{"{{pid}}","{{did}}","{{license}}"}) if(t.contentTemplate==null || !t.contentTemplate.contains(slot)) throw new Exception("文件模板缺少槽位："+slot);
     }
