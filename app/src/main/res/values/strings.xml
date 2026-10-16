@@ -26,6 +26,7 @@
     <string name="btn_sync_restart">同步并重启</string>
 
     <string name="card_log">操作记录</string>
+    <string name="btn_copy_log">复制日志</string>
     <string name="log_waiting">等待操作…</string>
 
     <string name="field_name">产品名称</string>

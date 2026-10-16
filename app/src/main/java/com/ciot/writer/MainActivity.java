@@ -54,6 +54,7 @@ public class MainActivity extends Activity {
         Button checkConnection = findViewById(R.id.checkConnection);
         Button burn = findViewById(R.id.burn);
         Button syncRestart = findViewById(R.id.syncRestart);
+        Button copyLog = findViewById(R.id.copyLog);
 
         serverUrl.setText(store.getServerUrl());
 
@@ -71,8 +72,17 @@ public class MainActivity extends Activity {
         checkConnection.setOnClickListener(v -> runCheck());
         burn.setOnClickListener(v -> burn());
         syncRestart.setOnClickListener(v -> syncRestart());
+        copyLog.setOnClickListener(v -> copyLog());
 
         refreshSpinner(store.getSelected());
+    }
+
+    private void copyLog() {
+        String text = logView == null ? "" : logView.getText().toString();
+        if (text.isEmpty() || text.equals(getString(R.string.log_waiting))) { toast("暂无日志可复制"); return; }
+        android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("CIOT Writer 日志", text));
+        toast("日志已复制到剪贴板");
     }
 
     private void toast(String message) { Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }

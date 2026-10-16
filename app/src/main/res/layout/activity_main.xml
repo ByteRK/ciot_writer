@@ -244,13 +244,28 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/card_log"
-                android:textColor="@color/colorDark"
-                android:textSize="17sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/card_log"
+                    android:textColor="@color/colorDark"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/copyLog"
+                    style="@style/CIOT.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="@string/btn_copy_log" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/logView"
@@ -260,6 +275,7 @@
                 android:minHeight="76dp"
                 android:text="@string/log_waiting"
                 android:textColor="@color/colorDark"
+                android:textIsSelectable="true"
                 android:textSize="13sp"
                 android:typeface="monospace" />
         </LinearLayout>
