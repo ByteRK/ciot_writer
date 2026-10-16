@@ -13,6 +13,10 @@ public class TemplateStore {
     public TemplateStore(Context context) { preferences = context.getSharedPreferences("ciot-writer", Context.MODE_PRIVATE); }
     public String getServerUrl() { return preferences.getString("serverUrl", ""); }
     public void setServerUrl(String value) { preferences.edit().putString("serverUrl", value.trim()).apply(); }
+    public String getHost() { return preferences.getString("host", ""); }
+    public void setHost(String value) { preferences.edit().putString("host", value.trim()).apply(); }
+    public boolean getAutoReboot() { return preferences.getBoolean("autoReboot", false); }
+    public void setAutoReboot(boolean value) { preferences.edit().putBoolean("autoReboot", value).apply(); }
     public int getSelected() { return preferences.getInt("selectedTemplate", 0); }
     public void setSelected(int value) { preferences.edit().putInt("selectedTemplate", value).apply(); }
     public List<ProductTemplate> load() {

@@ -57,6 +57,8 @@ public class MainActivity extends Activity {
         Button copyLog = findViewById(R.id.copyLog);
 
         serverUrl.setText(store.getServerUrl());
+        host.setText(store.getHost());
+        autoReboot.setChecked(store.getAutoReboot());
 
         saveServer.setOnClickListener(v -> { store.setServerUrl(serverUrl.getText().toString()); toast("服务器地址已保存"); });
         testServer.setOnClickListener(v -> checkServer(testServer));
@@ -160,5 +162,6 @@ public class MainActivity extends Activity {
             .setNegativeButton("取消",null).setPositiveButton("执行",(d,w)->{append("正在同步并重启 "+device);worker.execute(()->{try{WriterService.syncAndReboot(device,t);runOnUiThread(()->append("已发送同步和重启命令"));}catch(Exception e){runOnUiThread(()->append("操作失败："+e.getMessage()));}});}).show();
     }
     private void append(String line) { runOnUiThread(()->{if(logView==null)return;String old=logView.getText().toString();if(old.equals(getString(R.string.log_waiting)))old="";logView.setText(old+line+"\n");}); }
+    @Override protected void onPause(){super.onPause();if(host!=null)store.setHost(host.getText().toString());if(autoReboot!=null)store.setAutoReboot(autoReboot.isChecked());}
     @Override protected void onDestroy(){super.onDestroy();worker.shutdownNow();}
 }
