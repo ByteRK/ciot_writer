@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
@@ -58,6 +59,11 @@ public class SettingsActivity extends Activity {
         Button exportButton = findViewById(R.id.exportTemplates);
 
         serverUrl.setText(store.getServerUrl());
+
+        TextView aboutInfo = findViewById(R.id.aboutInfo);
+        aboutInfo.setText(getString(R.string.about_version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
+                + "\n" + getString(R.string.about_build_time, BuildConfig.BUILD_TIME)
+                + "\n" + getString(R.string.about_copyright));
 
         fetchDialog.setChecked(store.getShowFetchDialog());
         fetchDialog.setOnCheckedChangeListener((button, checked) -> store.setShowFetchDialog(checked));

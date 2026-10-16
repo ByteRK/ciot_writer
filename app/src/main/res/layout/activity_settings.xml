@@ -242,6 +242,17 @@
                     android:textColor="@color/colorMuted"
                     android:textSize="12sp" />
             </LinearLayout>
+
+            <!-- 版本与版权 -->
+            <TextView
+                android:id="@+id/aboutInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp"
+                android:textColor="@color/colorMuted"
+                android:textSize="12sp" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

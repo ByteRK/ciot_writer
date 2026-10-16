@@ -41,6 +41,10 @@
     <string name="settings_subtitle">服务器与产品模板配置</string>
     <string name="settings_template_hint">模板的网卡名、写入路径与 Telnet 参数在此维护；主界面只需选择模板并烧录。</string>
 
+    <string name="about_version">版本 %1$s（Build %2$d）</string>
+    <string name="about_build_time">编译时间 %1$s</string>
+    <string name="about_copyright">© 2026 Ricken　保留所有权利</string>
+
     <string name="field_name">产品名称</string>
     <string name="field_pid">PID</string>
     <string name="field_nic">设备网卡名</string>
