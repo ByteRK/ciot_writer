@@ -3,7 +3,7 @@
     <string name="app_name">CIOT Writer</string>
 
     <string name="app_title">CIOT Writer</string>
-    <string name="app_subtitle">嵌入式设备授权写入</string>
+    <string name="app_subtitle">凯度设备授权写入</string>
 
     <string name="card_server">授权服务器</string>
     <string name="server_url_hint">例如 http://192.168.1.10:8080</string>
@@ -18,16 +18,22 @@
     <string name="btn_export">导出 JSON</string>
 
     <string name="card_device">设备连接</string>
-    <string name="device_hint">手机和设备需连接同一局域网。</string>
     <string name="host_hint">设备 IP 地址</string>
     <string name="auto_reboot">写入并同步后自动重启设备</string>
     <string name="btn_check">测试 Telnet 连接</string>
     <string name="btn_burn">申请授权并烧录</string>
     <string name="btn_sync_restart">同步并重启</string>
 
-    <string name="card_log">操作记录</string>
-    <string name="btn_copy_log">复制日志</string>
-    <string name="log_waiting">等待操作…</string>
+    <string name="btn_clear">清空</string>
+    <string name="btn_copy">复制</string>
+    <string name="btn_settings">设置</string>
+    <string name="btn_done">完成</string>
+    <string name="btn_check_short">测试</string>
+    <string name="btn_sync_short">同步重启</string>
+    <string name="log_ready">就绪，等待操作…</string>
+    <string name="settings_title">设置</string>
+    <string name="settings_subtitle">服务器与产品模板配置</string>
+    <string name="settings_template_hint">模板的网卡名、写入路径与 Telnet 参数在此维护；主界面只需选择模板并烧录。</string>
 
     <string name="field_name">产品名称</string>
     <string name="field_pid">PID</string>

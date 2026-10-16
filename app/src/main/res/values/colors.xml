@@ -5,4 +5,7 @@
     <color name="colorMuted">#677A86</color>
     <color name="colorBackground">#F4F7F8</color>
     <color name="colorSync">#4A6570</color>
+    <color name="colorTerminal">#0F2229</color>
+    <color name="colorTerminalText">#C7DCE4</color>
+    <color name="colorOnDarkMuted">#9CB2BD</color>
 </resources>

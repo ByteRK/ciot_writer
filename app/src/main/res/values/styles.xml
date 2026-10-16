@@ -16,6 +16,15 @@
         <item name="android:textColor">@android:color/white</item>
     </style>
 
+    <style name="CIOT.Button.Header" parent="android:Widget.Material.Button.Borderless">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+    </style>
+
     <style name="CIOT.EditText" parent="android:Widget.Material.EditText">
         <item name="android:textSize">15sp</item>
         <item name="android:paddingStart">12dp</item>
