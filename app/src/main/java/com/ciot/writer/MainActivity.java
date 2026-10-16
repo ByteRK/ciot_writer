@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     private TextView logView;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private static final int IMPORT_JSON = 3101, EXPORT_JSON = 3102;
+    private boolean updatingSpinner = false;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -64,7 +65,7 @@ public class MainActivity extends Activity {
         importTemplates.setOnClickListener(v -> importTemplates());
         exportTemplates.setOnClickListener(v -> exportTemplates());
         templateSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) { store.setSelected(position); }
+            @Override public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) { if (!updatingSpinner) store.setSelected(position); }
             @Override public void onNothingSelected(android.widget.AdapterView<?> parent) { }
         });
         checkConnection.setOnClickListener(v -> runCheck());
@@ -80,8 +81,12 @@ public class MainActivity extends Activity {
     private void refreshSpinner(int selected) {
         if(templateSpinner==null)return;
         List<String> names=new ArrayList<>(); for(ProductTemplate t:templates) names.add(t.name+"  ·  PID "+(t.pid.isEmpty()?"未设置":t.pid));
-        ArrayAdapter<String> adapter=new ArrayAdapter<>(this,android.R.layout.simple_spinner_item,names); adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item); templateSpinner.setAdapter(adapter);
-        int index=Math.max(0,Math.min(selected,templates.size()-1)); templateSpinner.setSelection(index); store.setSelected(index);
+        ArrayAdapter<String> adapter=new ArrayAdapter<>(this,android.R.layout.simple_spinner_item,names); adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        updatingSpinner = true;
+        templateSpinner.setAdapter(adapter);
+        int index=Math.max(0,Math.min(selected,templates.size()-1)); templateSpinner.setSelection(index);
+        updatingSpinner = false;
+        store.setSelected(index);
     }
 
     private void editTemplate(ProductTemplate original) {
@@ -144,6 +149,6 @@ public class MainActivity extends Activity {
         new AlertDialog.Builder(this).setTitle("同步并重启").setMessage("将连接 "+device+"，执行 sync 后重启设备。")
             .setNegativeButton("取消",null).setPositiveButton("执行",(d,w)->{append("正在同步并重启 "+device);worker.execute(()->{try{WriterService.syncAndReboot(device,t);runOnUiThread(()->append("已发送同步和重启命令"));}catch(Exception e){runOnUiThread(()->append("操作失败："+e.getMessage()));}});}).show();
     }
-    private void append(String line) { runOnUiThread(()->{if(logView==null)return;String old=logView.getText().toString();if(old.equals("等待操作…"))old="";logView.setText(old+line+"\n");}); }
+    private void append(String line) { runOnUiThread(()->{if(logView==null)return;String old=logView.getText().toString();if(old.equals(getString(R.string.log_waiting)))old="";logView.setText(old+line+"\n");}); }
     @Override protected void onDestroy(){super.onDestroy();worker.shutdownNow();}
 }
