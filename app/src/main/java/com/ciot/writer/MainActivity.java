@@ -3,24 +3,16 @@ package com.ciot.writer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.graphics.Typeface;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.text.InputType;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONException;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,7 +23,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
-    private final int BLUE = Color.rgb(28, 106, 132), DARK = Color.rgb(31, 48, 60), MUTED = Color.rgb(103, 122, 134);
     private TemplateStore store;
     private List<ProductTemplate> templates;
     private Spinner templateSpinner;
@@ -44,70 +35,45 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         store = new TemplateStore(this); templates = store.load();
-        buildUi();
-    }
+        setContentView(R.layout.activity_main);
 
-    private void buildUi() {
-        ScrollView scroll = new ScrollView(this);
-        LinearLayout page = new LinearLayout(this); page.setOrientation(LinearLayout.VERTICAL);
-        page.setPadding(dp(20), dp(18), dp(20), dp(28)); page.setBackgroundColor(Color.rgb(244,247,248)); scroll.addView(page);
+        serverUrl = findViewById(R.id.serverUrl);
+        host = findViewById(R.id.host);
+        autoReboot = findViewById(R.id.autoReboot);
+        logView = findViewById(R.id.logView);
+        templateSpinner = findViewById(R.id.templateSpinner);
 
-        TextView title = text("CIOT Writer", 27, DARK, true); page.addView(title);
-        TextView subtitle = text("嵌入式设备授权写入", 14, MUTED, false); page.addView(subtitle, params(0, 8));
+        Button saveServer = findViewById(R.id.saveServer);
+        Button testServer = findViewById(R.id.testServer);
+        Button addTemplate = findViewById(R.id.addTemplate);
+        Button editTemplate = findViewById(R.id.editTemplate);
+        Button deleteTemplate = findViewById(R.id.deleteTemplate);
+        Button importTemplates = findViewById(R.id.importTemplates);
+        Button exportTemplates = findViewById(R.id.exportTemplates);
+        Button checkConnection = findViewById(R.id.checkConnection);
+        Button burn = findViewById(R.id.burn);
+        Button syncRestart = findViewById(R.id.syncRestart);
 
-        LinearLayout serverCard = card(page, "授权服务器");
-        serverUrl = input("例如 http://192.168.1.10:8080", false); serverUrl.setText(store.getServerUrl()); serverCard.addView(serverUrl, params(0, 8));
-        LinearLayout serverActions = row(serverCard);
-        Button saveServer = button("保存地址"); serverActions.addView(saveServer, new LinearLayout.LayoutParams(0,dp(48),1));
-        Button testServer = button("测试连接"); testServer.setBackgroundColor(BLUE); testServer.setTextColor(Color.WHITE); LinearLayout.LayoutParams testParams=new LinearLayout.LayoutParams(0,dp(48),1);testParams.setMargins(dp(8),0,0,0);serverActions.addView(testServer,testParams);
+        serverUrl.setText(store.getServerUrl());
+
         saveServer.setOnClickListener(v -> { store.setServerUrl(serverUrl.getText().toString()); toast("服务器地址已保存"); });
         testServer.setOnClickListener(v -> checkServer(testServer));
-
-        LinearLayout productCard = card(page, "产品与烧录模板");
-        templateSpinner = new Spinner(this); productCard.addView(templateSpinner, params(0, 6)); refreshSpinner(store.getSelected());
-        LinearLayout templateActions = row(productCard);
-        addButton(templateActions, "新增", () -> editTemplate(null));
-        addButton(templateActions, "编辑", () -> editTemplate(currentTemplate()));
-        addButton(templateActions, "删除", this::deleteTemplate);
-        LinearLayout jsonActions = row(productCard);
-        addButton(jsonActions, "导入 JSON", this::importTemplates);
-        addButton(jsonActions, "导出 JSON", this::exportTemplates);
+        addTemplate.setOnClickListener(v -> editTemplate(null));
+        editTemplate.setOnClickListener(v -> editTemplate(currentTemplate()));
+        deleteTemplate.setOnClickListener(v -> deleteTemplate());
+        importTemplates.setOnClickListener(v -> importTemplates());
+        exportTemplates.setOnClickListener(v -> exportTemplates());
         templateSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) { store.setSelected(position); }
             @Override public void onNothingSelected(android.widget.AdapterView<?> parent) { }
         });
-
-        LinearLayout deviceCard = card(page, "设备连接");
-        TextView hint = text("手机和设备需连接同一局域网。", 13, MUTED, false);
-        deviceCard.addView(hint, params(0, 2));
-        host = input("设备 IP 地址", false); deviceCard.addView(host, params(0, 12));
-//        TextView templateSummary = text("Telnet 端口、账号、网卡名、设备文件路径和内容模板由所选产品配置。", 12, MUTED, false);
-//        deviceCard.addView(templateSummary, params(0, 8));
-        autoReboot = new CheckBox(this); autoReboot.setText("写入并同步后自动重启设备"); autoReboot.setTextColor(DARK); deviceCard.addView(autoReboot, params(0, 4));
-        Button check = button("测试 Telnet 连接"); deviceCard.addView(check, params(0, 9));
-        check.setOnClickListener(v -> runCheck());
-        Button burn = button("申请授权并烧录"); burn.setBackgroundColor(BLUE); burn.setTextColor(Color.WHITE); deviceCard.addView(burn, params(0, 8));
+        checkConnection.setOnClickListener(v -> runCheck());
         burn.setOnClickListener(v -> burn());
-        Button syncRestart = button("同步并重启"); syncRestart.setBackgroundColor(Color.rgb(74, 101, 112)); syncRestart.setTextColor(Color.WHITE); deviceCard.addView(syncRestart, params(0, 8));
         syncRestart.setOnClickListener(v -> syncRestart());
 
-        LinearLayout logCard = card(page, "操作记录");
-        logView = text("等待操作…", 13, DARK, false); logView.setTypeface(Typeface.MONOSPACE); logView.setMinHeight(dp(76)); logCard.addView(logView, params(0, 4));
-        setContentView(scroll);
+        refreshSpinner(store.getSelected());
     }
 
-    private LinearLayout card(LinearLayout parent, String heading) {
-        LinearLayout box = new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(dp(16),dp(15),dp(16),dp(15));
-        box.setBackgroundColor(Color.WHITE); box.setElevation(dp(2)); LinearLayout.LayoutParams lp=params(0,16); lp.topMargin=dp(16); parent.addView(box,lp);
-        TextView label=text(heading,17,DARK,true); box.addView(label,params(0,4)); return box;
-    }
-    private LinearLayout row(LinearLayout parent) { LinearLayout r=new LinearLayout(this); r.setOrientation(LinearLayout.HORIZONTAL); parent.addView(r,params(0,4)); return r; }
-    private void addButton(LinearLayout row, String label, Runnable action) { Button b=button(label); LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(46),1); lp.setMargins(dp(3),dp(3),dp(3),dp(3)); row.addView(b,lp); b.setOnClickListener(v->action.run()); }
-    private Button button(String value) { Button b=new Button(this); b.setText(value); b.setAllCaps(false); b.setTextSize(14); b.setTextColor(DARK); return b; }
-    private TextView text(String value,int size,int color,boolean bold) { TextView t=new TextView(this); t.setText(value); t.setTextSize(size); t.setTextColor(color); if(bold)t.setTypeface(null,Typeface.BOLD); return t; }
-    private EditText input(String hint, boolean multiline) { EditText e=new EditText(this); e.setHint(hint); e.setTextSize(15); e.setSingleLine(!multiline); e.setPadding(dp(12),dp(8),dp(12),dp(8)); if(multiline){e.setGravity(Gravity.TOP|Gravity.START);e.setMinLines(3);e.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);} return e; }
-    private LinearLayout.LayoutParams params(int width,int top) { LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(width==0?ViewGroup.LayoutParams.MATCH_PARENT:width,ViewGroup.LayoutParams.WRAP_CONTENT); p.topMargin=dp(top); return p; }
-    private int dp(int value) { return (int)(value*getResources().getDisplayMetrics().density+0.5f); }
     private void toast(String message) { Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
     private ProductTemplate currentTemplate() { int i=templateSpinner==null?0:templateSpinner.getSelectedItemPosition(); return templates.get(Math.max(0,Math.min(i,templates.size()-1))); }
 
@@ -120,14 +86,14 @@ public class MainActivity extends Activity {
 
     private void editTemplate(ProductTemplate original) {
         final boolean editing=original!=null; final ProductTemplate t=editing?original:new ProductTemplate();
-        LinearLayout form=new LinearLayout(this); form.setOrientation(LinearLayout.VERTICAL); form.setPadding(dp(20),0,dp(20),0);
-        ScrollView scroller=new ScrollView(this); scroller.addView(form);
-        EditText name=field(form,"产品名称",t.name,false), pid=field(form,"PID",t.pid,false), nic=field(form,"设备网卡名",t.networkInterface,false);
-        EditText path=field(form,"设备端文件绝对路径",t.targetPath,false), port=field(form,"Telnet 端口",String.valueOf(t.port),false);
-        port.setInputType(InputType.TYPE_CLASS_NUMBER);
-        EditText username=field(form,"Telnet 用户名",t.username,false), password=field(form,"Telnet 密码",t.password,false);
-        EditText content=field(form,"文件内容模板（必须含 {{pid}}、{{did}}、{{license}}）",t.contentTemplate,true); content.setMinLines(5);
-        new AlertDialog.Builder(this).setTitle(editing?"编辑产品模板":"新增产品模板").setView(scroller)
+        View form=getLayoutInflater().inflate(R.layout.dialog_template,null);
+        EditText name=form.findViewById(R.id.fieldName), pid=form.findViewById(R.id.fieldPid), nic=form.findViewById(R.id.fieldNic);
+        EditText path=form.findViewById(R.id.fieldPath), port=form.findViewById(R.id.fieldPort);
+        EditText username=form.findViewById(R.id.fieldUsername), password=form.findViewById(R.id.fieldPassword);
+        EditText content=form.findViewById(R.id.fieldContent);
+        name.setText(t.name); pid.setText(t.pid); nic.setText(t.networkInterface); path.setText(t.targetPath);
+        port.setText(String.valueOf(t.port)); username.setText(t.username); password.setText(t.password); content.setText(t.contentTemplate);
+        new AlertDialog.Builder(this).setTitle(editing?"编辑产品模板":"新增产品模板").setView(form)
             .setNegativeButton("取消",null).setPositiveButton("保存",(d,w)->{
                 String p=pid.getText().toString().trim(), n=name.getText().toString().trim(), iface=nic.getText().toString().trim(), target=path.getText().toString().trim(), body=content.getText().toString();
                 int telnetPort; try{telnetPort=Integer.parseInt(port.getText().toString());}catch(Exception ex){toast("Telnet 端口无效");return;}
@@ -136,11 +102,6 @@ public class MainActivity extends Activity {
                 t.name=n;t.pid=p;t.networkInterface=iface;t.targetPath=target;t.port=telnetPort;t.username=username.getText().toString();t.password=password.getText().toString();t.contentTemplate=body;
                 if(!editing)templates.add(t); store.save(templates);refreshSpinner(templates.indexOf(t));toast("模板已保存");
             }).show();
-    }
-    private EditText field(LinearLayout form,String label,String value,boolean secret) {
-        TextView title=text(label,13,MUTED,false); LinearLayout.LayoutParams lp=params(0,5);form.addView(title,lp);
-        EditText e=input(label,true); e.setText(value); if(!secret)e.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE); else e.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        form.addView(e,params(0,0)); return e;
     }
     private void deleteTemplate() {
         if(templates.size()<2){toast("至少保留一个模板");return;}

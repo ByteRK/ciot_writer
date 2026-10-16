@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CIOT Writer</string>
+
+    <string name="app_title">CIOT Writer</string>
+    <string name="app_subtitle">嵌入式设备授权写入</string>
+
+    <string name="card_server">授权服务器</string>
+    <string name="server_url_hint">例如 http://192.168.1.10:8080</string>
+    <string name="btn_save_server">保存地址</string>
+    <string name="btn_test_server">测试连接</string>
+
+    <string name="card_product">产品与烧录模板</string>
+    <string name="btn_add">新增</string>
+    <string name="btn_edit">编辑</string>
+    <string name="btn_delete">删除</string>
+    <string name="btn_import">导入 JSON</string>
+    <string name="btn_export">导出 JSON</string>
+
+    <string name="card_device">设备连接</string>
+    <string name="device_hint">手机和设备需连接同一局域网。</string>
+    <string name="host_hint">设备 IP 地址</string>
+    <string name="auto_reboot">写入并同步后自动重启设备</string>
+    <string name="btn_check">测试 Telnet 连接</string>
+    <string name="btn_burn">申请授权并烧录</string>
+    <string name="btn_sync_restart">同步并重启</string>
+
+    <string name="card_log">操作记录</string>
+    <string name="log_waiting">等待操作…</string>
+
+    <string name="field_name">产品名称</string>
+    <string name="field_pid">PID</string>
+    <string name="field_nic">设备网卡名</string>
+    <string name="field_path">设备端文件绝对路径</string>
+    <string name="field_port">Telnet 端口</string>
+    <string name="field_username">Telnet 用户名</string>
+    <string name="field_password">Telnet 密码</string>
+    <string name="field_content">文件内容模板（必须含 {{pid}}、{{did}}、{{license}}）</string>
+</resources>

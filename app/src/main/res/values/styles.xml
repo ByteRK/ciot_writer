@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="CIOT.Button" parent="android:Widget.Material.Button">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/colorDark</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="CIOT.Button.Primary" parent="CIOT.Button">
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="CIOT.Button.Sync" parent="CIOT.Button">
+        <item name="android:background">@color/colorSync</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="CIOT.EditText" parent="android:Widget.Material.EditText">
+        <item name="android:textSize">15sp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+</resources>
