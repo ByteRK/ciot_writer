@@ -1,5 +1,7 @@
 package com.ciot.writer;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
@@ -8,6 +10,7 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -47,6 +50,8 @@ public class MainActivity extends Activity {
     private CheckBox autoReboot;
     private ScrollView logScroll;
     private TextView logView;
+    /** 主操作按钮的呼吸光晕动画，仅在界面存活期间循环。 */
+    private ObjectAnimator glowAnimator;
     private boolean updatingSpinner = false;
     private boolean logStarted = false;
     /** 最近一次抓取到的设备文件内容与默认文件名，供另存到本地时使用。 */
@@ -95,6 +100,20 @@ public class MainActivity extends Activity {
             }
             @Override public void onNothingSelected(AdapterView<?> parent) { }
         });
+
+        startBurnGlow();
+    }
+
+    /** 为主操作按钮叠加一层缓慢呼吸的柔光，传达“随时可执行”的活跃状态（200ms 级缓动的手感）。 */
+    private void startBurnGlow() {
+        View glow = findViewById(R.id.burnGlow);
+        if (glow == null) return;
+        glowAnimator = ObjectAnimator.ofFloat(glow, "alpha", 0.25f, 1f);
+        glowAnimator.setDuration(1500);
+        glowAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        glowAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        glowAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        glowAnimator.start();
     }
 
     /** 从设置页返回时重新加载产品，保证下拉列表与最新配置一致。 */
@@ -110,7 +129,11 @@ public class MainActivity extends Activity {
         if (autoReboot != null) store.setAutoReboot(autoReboot.isChecked());
     }
 
-    @Override protected void onDestroy() { super.onDestroy(); worker.shutdownNow(); }
+    @Override protected void onDestroy() {
+        super.onDestroy();
+        if (glowAnimator != null) glowAnimator.cancel();
+        worker.shutdownNow();
+    }
 
     private void copyLog() {
         if (logLines.isEmpty()) { toast("暂无日志可复制"); return; }
@@ -142,8 +165,9 @@ public class MainActivity extends Activity {
         if (productSpinner == null || products.isEmpty()) return;
         List<String> names = new ArrayList<>();
         for (Product product : products) names.add(product.name + "  ·  PID " + (product.pid.isEmpty() ? "未设置" : product.pid));
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, names);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_spinner_selected, names);
+        adapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
+        productSpinner.setPopupBackgroundResource(R.drawable.bg_popup);
         updatingSpinner = true;
         productSpinner.setAdapter(adapter);
         int index = Math.max(0, Math.min(selected, products.size() - 1));

@@ -1,6 +1,7 @@
 package com.ciot.writer;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Build;
 import android.view.View;
 import android.view.Window;
@@ -14,18 +15,21 @@ import android.view.WindowInsetsController;
 final class SystemInsets {
     private SystemInsets() { }
 
-    /** 在 setContentView 之前调用：让内容延伸到状态栏与导航栏区域，并把状态栏图标改为浅色以适配深色标题栏。 */
+    /** 在 setContentView 之前调用：让内容延伸到状态栏与导航栏区域，并把系统栏图标改为浅色以适配深色背景。 */
     @SuppressWarnings("deprecation")
     static void enableEdgeToEdge(Activity activity) {
         Window window = activity.getWindow();
         try {
-            window.setStatusBarColor(activity.getColor(R.color.colorDark));
+            // 透明系统栏：让顶部径向蓝光与深色背景无缝延伸到屏幕边缘。
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 window.setDecorFitsSystemWindows(false);
                 // 必须经由 DecorView 获取控制器：Window#getInsetsController 在 Android 15 上直接读取内部 DecorView，
                 // 而此时若尚未调用 setContentView，DecorView 仍为 null 会抛出空指针。getDecorView 会按需创建它。
                 WindowInsetsController controller = window.getDecorView().getWindowInsetsController();
-                if (controller != null) controller.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+                if (controller != null) controller.setSystemBarsAppearance(0,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
             } else {
                 window.getDecorView().setSystemUiVisibility(
                         View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);

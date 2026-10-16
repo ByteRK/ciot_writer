@@ -1,0 +1,13 @@
+Design a dark mode mobile app UI for an authorization code burning tool.
+Style: dark, modern, fresh, minimal, airy, premium tech.
+Color: background #0F172A, card rgba(30,41,59,0.6),
+primary #4F9CF9, secondary #5EEAD4, text #E5E7EB,
+secondary text #94A3B8, low saturation, soft blue-green gradient glow.
+Components: rounded 20px glassmorphism cards, 1px rgba(255,255,255,0.08) border,
+pill buttons with soft neon glow, soft shadows, generous whitespace.
+Screens: 1) device connect home, 2) 6-digit code input,
+3) burning progress with glowing circular ring, 4) success page,
+5) history list.
+Motion: subtle, 200ms ease-out, breathing glow on active states.
+Background: subtle radial blue glow at top.
+Feels: trustworthy, tech but friendly, calm, not cold, not pure black.

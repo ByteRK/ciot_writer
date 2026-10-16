@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 主操作按钮的呼吸光晕：中心柔和的蓝色径向光斑，代码中循环淡入淡出 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="26dp" />
+    <gradient
+        android:centerColor="#334F9CF9"
+        android:centerX="0.5"
+        android:centerY="0.5"
+        android:endColor="#004F9CF9"
+        android:gradientRadius="110dp"
+        android:startColor="#4D4F9CF9"
+        android:type="radial" />
+</shape>

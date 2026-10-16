@@ -2,8 +2,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
         android:label="CIOT Writer"
-        android:theme="@android:style/Theme.Material.Light.NoActionBar"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:theme="@style/CIOT.Theme"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"

@@ -1,13 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#1C6A84</color>
-    <color name="colorDark">#1F303C</color>
-    <color name="colorMuted">#677A86</color>
-    <color name="colorBackground">#F4F7F8</color>
-    <color name="colorSync">#4A6570</color>
-    <color name="colorTerminal">#0F2229</color>
-    <color name="colorTerminalText">#C7DCE4</color>
-    <color name="colorOnDarkMuted">#9CB2BD</color>
-    <color name="colorDotIdle">#CBD6DB</color>
-    <color name="colorDivider">#E6ECEF</color>
+    <!-- ===== 背景：深邃靛蓝，非纯黑 ===== -->
+    <color name="colorBackground">#0F172A</color>
+    <color name="colorSurface">#1E293B</color>
+    <color name="colorPopup">#243247</color>
+
+    <!-- ===== 玻璃卡片 / 描边 ===== -->
+    <color name="colorCard">#991E293B</color>
+    <!-- rgba(30,41,59,0.6) 玻璃层 -->
+    <color name="colorCardTop">#B31E293B</color>
+    <color name="colorCardBorder">#14FFFFFF</color>
+    <!-- rgba(255,255,255,0.08) -->
+    <color name="colorDivider">#14FFFFFF</color>
+
+    <!-- ===== 下沉面板（终端日志区） ===== -->
+    <color name="colorPanel">#990B1220</color>
+    <color name="colorPanelTop">#B30B1220</color>
+    <color name="colorTerminalText">#A9BAD2</color>
+
+    <!-- ===== 主色（蓝）与柔光 ===== -->
+    <color name="colorPrimary">#4F9CF9</color>
+    <color name="colorPrimaryBright">#6EA9FA</color>
+    <color name="colorPrimaryDeep">#3C86E8</color>
+    <color name="colorPrimaryGlow">#334F9CF9</color>
+    <!-- 主色 20% 辉光 -->
+    <color name="colorPrimaryHalo">#1F4F9CF9</color>
+    <!-- 主色 12% 光晕 -->
+    <color name="colorOnPrimary">#FFFFFF</color>
+
+    <!-- ===== 次色（青绿）与柔光 ===== -->
+    <color name="colorSecondary">#5EEAD4</color>
+    <color name="colorSecondaryBright">#7FF0DE</color>
+    <color name="colorSecondaryDeep">#3FD3BC</color>
+    <color name="colorSecondaryGlow">#335EEAD4</color>
+    <color name="colorOnSecondary">#0F172A</color>
+
+    <!-- ===== 文字 ===== -->
+    <color name="colorDark">#E5E7EB</color>
+    <!-- 主文字 -->
+    <color name="colorMuted">#94A3B8</color>
+    <!-- 次要文字 -->
+
+    <!-- ===== 控件 ===== -->
+    <color name="colorInput">#66070E1C</color>
+    <color name="colorInputFocused">#8013254A</color>
+    <color name="colorInputBorder">#1FFFFFFF</color>
+    <color name="colorNeutralFill">#59334455</color>
+    <color name="colorNeutralBorder">#1FFFFFFF</color>
+    <color name="colorGhostFill">#1AFFFFFF</color>
+    <color name="colorRipple">#33FFFFFF</color>
+    <color name="colorDotIdle">#475569</color>
 </resources>

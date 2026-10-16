@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 次色按钮：青绿辉光胶囊 + 点击水波纹 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/colorRipple">
+    <item android:drawable="@drawable/bg_pill_secondary" />
+</ripple>

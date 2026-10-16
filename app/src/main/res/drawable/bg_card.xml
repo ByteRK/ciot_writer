@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 玻璃拟态卡片：20dp 圆角 + 1px 浅描边 + 上亮下暗的玻璃渐变 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <solid android:color="@color/colorCardBorder" />
+        </shape>
+    </item>
+    <item
+        android:bottom="1dp"
+        android:left="1dp"
+        android:right="1dp"
+        android:top="1dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="19dp" />
+            <gradient
+                android:angle="270"
+                android:endColor="@color/colorCard"
+                android:startColor="@color/colorCardTop" />
+        </shape>
+    </item>
+</layer-list>

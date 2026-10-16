@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 下沉面板（终端日志区）：比卡片更暗的玻璃层，营造内嵌感 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <solid android:color="@color/colorCardBorder" />
+        </shape>
+    </item>
+    <item
+        android:bottom="1dp"
+        android:left="1dp"
+        android:right="1dp"
+        android:top="1dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="19dp" />
+            <gradient
+                android:angle="270"
+                android:endColor="@color/colorPanel"
+                android:startColor="@color/colorPanelTop" />
+        </shape>
+    </item>
+</layer-list>

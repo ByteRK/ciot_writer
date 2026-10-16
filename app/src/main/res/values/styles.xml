@@ -1,35 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- ===== 玻璃卡片 ===== -->
+    <style name="CIOT.Card" parent="">
+        <item name="android:background">@drawable/bg_card</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">18dp</item>
+        <item name="android:clipToPadding">false</item>
+    </style>
+
+    <style name="CIOT.CardTitle" parent="">
+        <item name="android:textColor">@color/colorDark</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
+    <style name="CIOT.CardHint" parent="">
+        <item name="android:textColor">@color/colorMuted</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+    </style>
+
+    <style name="CIOT.FieldLabel" parent="">
+        <item name="android:textColor">@color/colorMuted</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+
+    <!-- ===== 按钮：胶囊 + 柔和辉光 ===== -->
     <style name="CIOT.Button" parent="android:Widget.Material.Button">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/colorDark</item>
         <item name="android:textAllCaps">false</item>
-    </style>
-
-    <style name="CIOT.Button.Primary" parent="CIOT.Button">
-        <item name="android:background">@color/colorPrimary</item>
-        <item name="android:textColor">@android:color/white</item>
-    </style>
-
-    <style name="CIOT.Button.Sync" parent="CIOT.Button">
-        <item name="android:background">@color/colorSync</item>
-        <item name="android:textColor">@android:color/white</item>
-    </style>
-
-    <style name="CIOT.Button.Header" parent="android:Widget.Material.Button.Borderless">
-        <item name="android:textSize">13sp</item>
-        <item name="android:textColor">@android:color/white</item>
-        <item name="android:textAllCaps">false</item>
+        <item name="android:background">@drawable/bg_btn_neutral</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:stateListAnimator">@null</item>
         <item name="android:minWidth">0dp</item>
-        <item name="android:paddingStart">10dp</item>
-        <item name="android:paddingEnd">10dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:letterSpacing">0.02</item>
     </style>
 
+    <style name="CIOT.Button.Primary">
+        <item name="android:background">@drawable/bg_btn_primary</item>
+        <item name="android:textColor">@color/colorOnPrimary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="CIOT.Button.Secondary">
+        <item name="android:background">@drawable/bg_btn_secondary</item>
+        <item name="android:textColor">@color/colorOnSecondary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="CIOT.Button.Header" parent="android:Widget.Material.Button">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/colorDark</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:background">@drawable/bg_btn_ghost</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+    </style>
+
+    <!-- ===== 输入框：玻璃底 + 聚焦点亮 ===== -->
     <style name="CIOT.EditText" parent="android:Widget.Material.EditText">
         <item name="android:textSize">15sp</item>
-        <item name="android:paddingStart">12dp</item>
-        <item name="android:paddingTop">8dp</item>
-        <item name="android:paddingEnd">12dp</item>
-        <item name="android:paddingBottom">8dp</item>
+        <item name="android:textColor">@color/colorDark</item>
+        <item name="android:textColorHint">@color/colorMuted</item>
+        <item name="android:background">@drawable/bg_input</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:paddingBottom">12dp</item>
     </style>
 </resources>

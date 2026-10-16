@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 次色胶囊：外层青绿柔光 + 内层渐变胶囊 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <solid android:color="@color/colorSecondaryGlow" />
+        </shape>
+    </item>
+    <item
+        android:bottom="3dp"
+        android:left="3dp"
+        android:right="3dp"
+        android:top="3dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="25dp" />
+            <gradient
+                android:angle="270"
+                android:endColor="@color/colorSecondaryDeep"
+                android:startColor="@color/colorSecondaryBright" />
+        </shape>
+    </item>
+</layer-list>

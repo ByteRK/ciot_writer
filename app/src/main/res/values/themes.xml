@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 深色玻璃主题：整体托管应用外观，弹窗继承同一套配色 -->
+    <style name="CIOT.Theme" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@drawable/bg_screen</item>
+        <item name="android:colorBackground">@color/colorBackground</item>
+        <item name="android:colorPrimary">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark">@color/colorBackground</item>
+        <item name="android:colorAccent">@color/colorPrimary</item>
+        <item name="android:textColorPrimary">@color/colorDark</item>
+        <item name="android:textColorSecondary">@color/colorMuted</item>
+        <item name="android:textColorHint">@color/colorMuted</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:alertDialogTheme">@style/CIOT.Dialog</item>
+    </style>
+
+    <!-- 弹窗主题：深色玻璃面 + 主色强调，保持与页面一致 -->
+    <style name="CIOT.Dialog" parent="android:Theme.Material.Dialog.Alert">
+        <item name="android:colorAccent">@color/colorPrimary</item>
+        <item name="android:colorBackground">@color/colorSurface</item>
+        <item name="android:textColorPrimary">@color/colorDark</item>
+        <item name="android:textColorSecondary">@color/colorMuted</item>
+        <item name="android:textColorHint">@color/colorMuted</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
