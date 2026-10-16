@@ -36,7 +36,7 @@ public class WriterService {
         String mac;
         try (TelnetSession session = new TelnetSession(host, t.port, t.username, t.password)) {
             progress.log("Telnet 登录成功，读取 " + t.networkInterface + " 网卡 MAC");
-            String output = session.command("cat /sys/class/net/" + t.networkInterface + "/address");
+            String output = session.run("cat /sys/class/net/" + t.networkInterface + "/address").output;
             Matcher matcher = Pattern.compile("(?i)(?:[0-9a-f]{2}:){5}[0-9a-f]{2}").matcher(output);
             if (!matcher.find()) throw new Exception("无法读取有效 MAC 地址：" + t.networkInterface);
             mac = matcher.group().toUpperCase();
@@ -68,7 +68,7 @@ public class WriterService {
     public static void syncAndReboot(String host, ProductTemplate t) throws Exception {
         validateConnection(host, t);
         try (TelnetSession session = new TelnetSession(host, t.port, t.username, t.password)) {
-            session.command("sync");
+            session.run("sync");
             session.reboot();
         }
     }
@@ -95,16 +95,11 @@ public class WriterService {
         }
     }
 
-    /** 执行命令并以退出码校验结果，避免「命令失败但静默成功」。
-     *  使用 `; echo "EXIT:$?"` 而非固定标记：命令回显中 `$?` 保持字面量，
-     *  只有真实输出才会展开为 `EXIT:<数字>`，从而避免回显文本干扰退出码判断。 */
+    /** 执行命令并以退出码校验结果，避免「命令失败但静默成功」。 */
     private static String checkedCommand(TelnetSession session, String command, String description) throws Exception {
-        String output = session.command(command + "; echo \"EXIT:$?\"");
-        Matcher matcher = Pattern.compile("EXIT:(\\d+)").matcher(output);
-        int code = -1;
-        while (matcher.find()) code = Integer.parseInt(matcher.group(1));
-        if (code != 0) throw new Exception(description + "失败（退出码 " + code + "）" + tail(output));
-        return output;
+        TelnetSession.Result result = session.run(command);
+        if (result.exitCode != 0) throw new Exception(description + "失败（退出码 " + result.exitCode + "）" + tail(result.output));
+        return result.output;
     }
 
     private static String tail(String output) {

@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** Small interactive Telnet client for common embedded Linux login shells. */
@@ -13,6 +14,7 @@ public class TelnetSession implements AutoCloseable {
     private final Socket socket = new Socket();
     private final InputStream input;
     private final OutputStream output;
+    private String pendingCommand;
     private static final Pattern LOGIN = Pattern.compile("(?im)(?:login|username)\\s*:\\s*$");
     private static final Pattern PASS = Pattern.compile("(?im)password\\s*:\\s*$");
     // '>' 不能是箭头（-> 或 =>）的一部分，banner 中常出现此类字符。
@@ -23,6 +25,13 @@ public class TelnetSession implements AutoCloseable {
     private static final String PHASE_PASSWORD_OR_SHELL = "password or shell";
     private static final String PHASE_LOGIN_RESULT = "login result";
     private static final String PHASE_SHELL = "shell";
+
+    /** 命令执行结果：已剥离命令回显与结束标记的输出，以及命令退出码。 */
+    public static final class Result {
+        public final String output;
+        public final int exitCode;
+        Result(String output, int exitCode) { this.output = output; this.exitCode = exitCode; }
+    }
 
     public TelnetSession(String host, int port, String username, String password) throws Exception {
         socket.connect(new InetSocketAddress(host, port), 8000);
@@ -46,9 +55,21 @@ public class TelnetSession implements AutoCloseable {
         } else if (!PROMPT.matcher(first).find()) throw new Exception("未检测到 Telnet 登录提示或 Shell 提示符");
     }
 
-    public synchronized String command(String command) throws Exception {
-        send(command);
-        return readUntil(PHASE_SHELL);
+    /**
+     * 执行命令并在其后追加唯一结束标记（{@code echo "<token>$?"}），通过标记后紧跟的数字（退出码）
+     * 判断命令是否执行完毕。不再依赖通用 Shell 提示符匹配，从根本上避免命令回显中的
+     * {@code $}、{@code >}、{@code #} 被误判为提示符而导致输出被提前截断（回显中的 {@code $?}
+     * 后紧跟的是 {@code $} 而非数字，不会触发结束判定）。
+     */
+    public synchronized Result run(String command) throws Exception {
+        String token = "__CIOT_" + Long.toHexString(System.nanoTime()) + "__";
+        Pattern done = Pattern.compile(Pattern.quote(token) + "(\\d+)");
+        send(command + "; echo \"" + token + "$?\"");
+        String raw = readText(text -> done.matcher(text).find(), 30000, "命令输出");
+        Matcher matcher = done.matcher(raw);
+        int exitCode = -1, end = raw.length();
+        while (matcher.find()) { exitCode = Integer.parseInt(matcher.group(1)); end = matcher.start(); }
+        return new Result(raw.substring(0, end), exitCode);
     }
 
     /** 发送重启命令后等待设备断开连接（或短暂超时），确保命令已被设备处理而非随 socket 关闭而丢失。 */
@@ -63,10 +84,40 @@ public class TelnetSession implements AutoCloseable {
         }
     }
 
-    private void send(String value) throws Exception { output.write((value + "\r\n").getBytes(StandardCharsets.UTF_8)); output.flush(); }
+    private void send(String value) throws Exception { pendingCommand = value; output.write((value + "\r\n").getBytes(StandardCharsets.UTF_8)); output.flush(); }
+
+    /**
+     * 剔除命令回显：设备会把我们发送的命令原文回显到终端。由于本类逐字节读取并实时匹配提示符，
+     * 回显中形如 {@code $}、{@code >} 的字符（例如 {@code echo "EXIT:$?"} 中的 {@code $}）
+     * 会在数据尚未接收完整时被误判为 Shell 提示符，导致命令结果被提前截断。
+     * 因此先剥离回显（或判断仍处于回显接收中），再对剩余内容做提示符匹配。
+     */
+    private String stripEcho(String text) {
+        String command = pendingCommand;
+        if (command == null || command.isEmpty()) return text;
+        if (text.startsWith(command)) return text.substring(command.length());
+        if (command.startsWith(text)) return ""; // 仍在接收命令回显，尚未开始输出
+        return text;
+    }
 
     private String readUntil(String phase) throws Exception {
-        long end = System.currentTimeMillis() + (PHASE_SHELL.equals(phase) ? 30000 : 10000);
+        long timeout = PHASE_SHELL.equals(phase) ? 30000 : 10000;
+        String raw = readText(text -> matchesPhase(phase, stripEcho(text)), timeout, phase);
+        return stripEcho(raw);
+    }
+
+    private boolean matchesPhase(String phase, String visible) {
+        if (PHASE_LOGIN.equals(phase)) return LOGIN.matcher(visible).find() || PASS.matcher(visible).find() || PROMPT.matcher(visible).find() || AUTH_FAIL.matcher(visible).find();
+        if (PHASE_PASSWORD_OR_SHELL.equals(phase)) return PASS.matcher(visible).find() || PROMPT.matcher(visible).find() || AUTH_FAIL.matcher(visible).find();
+        if (PHASE_LOGIN_RESULT.equals(phase)) return PROMPT.matcher(visible).find() || AUTH_FAIL.matcher(visible).find();
+        return PROMPT.matcher(visible).find();
+    }
+
+    private interface Checker { boolean done(String text); }
+
+    /** 逐字节读取并处理 Telnet/ANSI 控制序列，累积为可打印文本直到 {@code checker} 判定完成。 */
+    private String readText(Checker checker, long timeoutMillis, String label) throws Exception {
+        long end = System.currentTimeMillis() + timeoutMillis;
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         int ansiState = 0; // 0=普通文本, 1=刚读到 ESC, 2=CSI 序列中
         while (System.currentTimeMillis() < end) {
@@ -92,13 +143,10 @@ public class TelnetSession implements AutoCloseable {
                 if (b == 0x1b) { ansiState = 1; continue; } // ESC 开始 ANSI 序列
                 if (b == 0x09 || b == 0x0a || b == 0x0d || (b >= 0x20 && b != 0x7f)) bytes.write(b);
                 String text = new String(bytes.toByteArray(), StandardCharsets.UTF_8).replace("\r", "");
-                if (PHASE_LOGIN.equals(phase) && (LOGIN.matcher(text).find() || PASS.matcher(text).find() || PROMPT.matcher(text).find() || AUTH_FAIL.matcher(text).find())) return text;
-                if (PHASE_PASSWORD_OR_SHELL.equals(phase) && (PASS.matcher(text).find() || PROMPT.matcher(text).find() || AUTH_FAIL.matcher(text).find())) return text;
-                if (PHASE_LOGIN_RESULT.equals(phase) && (PROMPT.matcher(text).find() || AUTH_FAIL.matcher(text).find())) return text;
-                if (PHASE_SHELL.equals(phase) && PROMPT.matcher(text).find()) return text;
+                if (checker.done(text)) return text;
             } catch (java.net.SocketTimeoutException ignored) { }
         }
-        throw new Exception("等待 Telnet " + phase + " 超时");
+        throw new Exception("等待 Telnet " + label + " 超时");
     }
 
     private void negotiate(int command) throws Exception {
